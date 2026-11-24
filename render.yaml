@@ -1,0 +1,35 @@
+# Render blueprint: create a web service from this repo. A persistent disk needs a paid plan,
+# and Orbitly stores its data as files, so without a disk everything resets on each deploy.
+services:
+  - type: web
+    name: orbitly
+    runtime: node
+    plan: starter
+    buildCommand: echo "no build step"
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    disk:
+      name: orbitly-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /data
+      - key: TRUST_PROXY
+        value: "1"
+      - key: FORCE_HTTPS
+        value: "1"
+      - key: DEMO_SEED
+        value: "0"
+      - key: SITE_URL
+        sync: false   # e.g. https://orbitly.onrender.com or your own domain
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: COMPANY_NAME
+        sync: false
+      - key: CONTACT_EMAIL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false

@@ -1,0 +1,16 @@
+{
+  "name": "orbitly",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Orbitly — a marketplace where artists customise everyday products and anyone can order them.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/auth.js && node --check public/art.js && node --check public/pages.js && node --check public/products.js && node --check public/mockup.js && node --check public/qr.js && node --check public/pow-worker.js && node --check public/motion.js && node --check public/admin.js && node --check tools/admin.js && node --check tools/make-admin.js && node --check tools/reset-password.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

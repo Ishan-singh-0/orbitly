@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#F3F0E9">
+<!--META-->
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts.css">
+<link rel="stylesheet" href="/styles.css">
+<link rel="stylesheet" href="/site.css">
+</head>
+<body>
+<a class="skip" href="#main" id="skipLink">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="container nav-in">
+    <button class="icon-btn only-mobile" id="burger" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
+    <a href="/" class="logo" data-nav aria-label="Orbitly home"><span class="logo-mark"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8.5" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="24" cy="7.5" r="3.6" fill="var(--pop)"/></svg></span><span>Orbitly</span></a>
+    <nav class="nav-links" id="navLinks">
+      <a href="/#cats" data-scroll>Products</a>
+      <a href="/#gigs" data-scroll>Listings</a>
+      <a href="/#how" data-scroll>How it works</a>
+      <a href="/#sellers" data-scroll>Artists</a>
+    </nav>
+    <button class="nav-search" id="openCmd" aria-label="Search"><svg class="i"><use href="#i-search"/></svg><span>Search</span></button>
+    <div class="nav-right">
+      <select class="select-mini" id="cur" aria-label="Currency"><option value="USD">USD $</option><option value="INR">INR ₹</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option></select>
+      <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><svg class="i"><use href="#i-moon"/></svg></button>
+      <button class="btn btn-line btn-sm hide-sm" id="loginBtn">Log in</button>
+      <button class="btn btn-ink btn-sm" id="signupBtn">Sign up</button>
+      <button class="btn btn-pop btn-sm hide-sm" id="sellLink">Sell your art</button>
+      <div class="rel" id="avWrap" hidden><button class="avatar" id="avBtn" aria-label="Account menu"></button><span class="badge av-badge" id="avBadge" hidden>0</span><div class="pop" id="avPop"></div></div>
+    </div>
+  </div>
+  <div class="subnav" hidden><div class="container"><div class="subnav-in" id="subnav"></div></div></div>
+</header>
+<div class="verify-bar" id="verifyBar" role="status" hidden></div>
+
+<div id="homeView">
+<main id="main" tabindex="-1">
+
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="hero-meta" id="heroMeta">Free to join, free to list</p>
+        <h1><span class="ln"><span>Art you</span></span> <span class="ln"><span>can <em>carry.</em></span></span></h1>
+        <p class="lead">Pick a bag, a mouse, a mug or a hoodie. Choose an artist from your campus or anywhere in the world, choose the colour, and get it made with their artwork on it.</p>
+        <div class="hero-cta"><a class="btn btn-ink btn-lg" href="/#cats" data-scroll>Browse products</a><button class="btn btn-line btn-lg" data-act="sell">Sell your art</button></div>
+        <form class="hero-search" id="heroForm" autocomplete="off">
+          <svg class="i"><use href="#i-search"/></svg>
+          <input id="heroIn" placeholder="Search products, artists or styles" aria-label="Search">
+          <button type="button" class="clear" id="heroClear" aria-label="Clear"><svg class="i"><use href="#i-x"/></svg></button>
+          <button class="btn btn-ink" type="submit">Search</button>
+          <div class="suggest" id="suggest"></div>
+        </form>
+        <div class="pop-row"><span>Popular:</span><span id="popChips" class="chips-inline"></span></div>
+        <div class="proof" id="proof"></div>
+      </div>
+      <div class="hero-art" id="heroArt" aria-label="Product preview"></div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true"><div class="marquee-in"><span>Tote bags</span><i></i><span>Computer mice</span><i></i><span>Hoodies</span><i></i><span>Mugs</span><i></i><span>Desk mats</span><i></i><span>Phone cases</span><i></i><span>Framed prints</span><i></i><span>Notebooks</span><i></i><span>Tote bags</span><i></i><span>Computer mice</span><i></i><span>Hoodies</span><i></i><span>Mugs</span><i></i><span>Desk mats</span><i></i><span>Phone cases</span><i></i><span>Framed prints</span><i></i><span>Notebooks</span><i></i></div></div>
+
+  <section class="live-strip" aria-label="Orbitly right now"><div class="container" id="liveStrip"></div></section>
+
+  <section id="cats">
+    <div class="container">
+      <div class="sec-head reveal"><h2>Start with a <em>product</em></h2><p>Twelve everyday things, each in several colours. Choose one to see the artists who customise it. Previews use sample artwork.</p></div>
+      <div class="prods reveal" id="catGrid"></div>
+    </div>
+  </section>
+
+  <section id="gigs" class="tint">
+    <div class="container">
+      <div class="sec-head reveal"><h2>Made by <em>artists</em></h2><p>Each listing shows the product, the artist and the price up front. New ones appear here as soon as they are published.</p></div>
+      <div class="filters">
+        <div class="chips-row" id="filterChips"></div>
+        <div class="filters-r">
+          <select class="select-mini" id="campusSel" aria-label="Filter by campus"><option value="">All campuses</option></select>
+          <label class="range"><span>Budget</span><input type="range" id="priceR" min="10" max="500" value="500" step="10"><output id="priceO">$500+</output></label>
+          <select class="select-mini" id="sort" aria-label="Sort services"><option value="new">Newest first</option><option value="rated">Best rated</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="fast">Fastest delivery</option></select>
+        </div>
+      </div>
+      <div class="result-count" aria-live="polite"><b id="resN">0</b> <span id="resW">listings</span></div>
+      <div class="active-f" id="activeF"></div>
+      <div class="gigs" id="gigGrid"></div>
+      <div class="more"><button class="btn btn-line btn-lg" id="moreBtn">Show more</button></div>
+      <div class="recent" id="recent" hidden></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="container how-grid">
+      <div class="how-head reveal"><h2>How it <em>works</em></h2><p>You talk to the artist directly and agree everything together. Nothing is hidden behind a form.</p></div>
+      <ol class="steps">
+        <li class="reveal"><span class="num">01</span><div><h3>Pick a product</h3><p>Browse bags, desk gear, clothing, mugs and prints, in the colours and sizes that suit you.</p></div></li>
+        <li class="reveal"><span class="num">02</span><div><h3>Choose an artist</h3><p>Look through portfolios from campuses and countries around the world. Open any page to see the work first.</p></div></li>
+        <li class="reveal"><span class="num">03</span><div><h3>Customise it</h3><p>Choose a colour, a size and a piece of the artist's work, and see a preview before you send the request.</p></div></li>
+        <li class="reveal"><span class="num">04</span><div><h3>Agree and receive</h3><p>Settle the details in chat, pay if online payment is on, approve the delivery and leave a review.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="campus" hidden>
+    <div class="container">
+      <div class="sec-head reveal"><h2>Artists by <em>campus</em></h2><p>Find students and alumni from a college near you, or one you miss.</p></div>
+      <div class="campus-row" id="campusRow"></div>
+    </div>
+  </section>
+
+  <section id="sellers" class="tint">
+    <div class="container">
+      <div class="sec-head reveal"><h2>New <em>artists</em></h2><p>The latest people to join. Each has a page with their portfolio, story and products.</p></div>
+      <div class="seller-row" id="sellerRow"></div>
+    </div>
+  </section>
+
+  <section class="cta-sec" id="why">
+    <div class="container">
+      <div class="cta reveal">
+        <div class="cta-copy"><h2>Bring your art to <em>Orbitly</em></h2><p>Stop sending portfolios as attachments. Give people one link that shows your work, the products you customise and how to reach you.</p>
+          <ul class="cta-list"><li><span></span>Free to create your page</li><li><span></span>Upload your portfolio</li><li><span></span>Sell to your campus and the world</li></ul>
+          <button class="btn btn-pop btn-lg" id="sellBtn">Open your artist page</button></div>
+        <div class="page-mock" aria-hidden="true">
+          <div class="pm-ban" id="pmBan"></div>
+          <div class="pm-body"><span class="avatar lg" id="pmAv"></span><div><b>Your name</b><small>Illustrator · Your campus</small><span class="pm-url mono" id="pmUrl">/@yourname</span><span class="mono" id="exAddr" hidden></span></div></div>
+          <div class="pm-chips"><span>Illustration</span><span>Lettering</span><span>Pattern</span></div>
+          <div class="pm-svc"><div class="pm-art" id="pmArt"></div><div><b>Your first custom product</b><small>Delivered in 5 days</small></div><span class="pm-price">$50</span></div>
+          <span class="pm-note">Example</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="container faq-grid">
+      <div class="reveal"><h2>Questions, <em>answered</em></h2><p class="lead2">Something we didn't cover? <a href="/contact" data-nav class="ulink">Get in touch</a> and we'll help.</p></div>
+      <div class="faq" id="faqList"></div>
+    </div>
+  </section>
+</main>
+</div>
+
+<div id="profileView" hidden></div>
+<div id="pageView" hidden></div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="foot-top">
+      <div><a href="/" class="logo" data-nav><span class="logo-mark"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8.5" fill="none" stroke="currentColor" stroke-width="3.2"/><circle cx="24" cy="7.5" r="3.6" fill="var(--pop)"/></svg></span><span>Orbitly</span></a>
+        <p>A marketplace where artists customise everyday products and anyone can order them.</p></div>
+      <div><h5>Explore</h5><a href="/#cats" data-scroll>Products</a><a href="/#gigs" data-scroll>Listings</a><a href="/#sellers" data-scroll>Artists</a><a href="/#how" data-scroll>How it works</a><a href="/#faq" data-scroll>FAQ</a></div>
+      <div><h5>Sell</h5><a href="#" id="footSell">Become an artist</a><a href="#" id="footDash">Artist dashboard</a></div>
+      <div><h5>Company</h5><a href="/about" data-nav>About</a><a href="/contact" data-nav>Contact</a></div>
+      <div><h5>Legal</h5><a href="/privacy" data-nav>Privacy policy</a><a href="/terms" data-nav>Terms of service</a></div>
+    </div>
+    <div class="foot-word" aria-hidden="true">Orbitly</div>
+    <div class="foot-bottom"><span id="copy">© Orbitly</span><span>Exchange rates by <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer">ExchangeRate-API</a></span></div>
+  </div>
+</footer>
+
+<div class="overlay" id="qvOv"><div class="modal" id="qv" role="dialog" aria-modal="true" aria-label="Listing details"></div></div>
+<div class="overlay top" id="cmdOv"><div class="cmd" role="dialog" aria-modal="true" aria-label="Search"><div class="cmd-in"><svg class="i"><use href="#i-search"/></svg><input id="cmdIn" placeholder="Search products, artists, actions…" autocomplete="off"></div><div class="cmd-list" id="cmdList"></div><div class="cmd-foot"><span><kbd>↑↓</kbd> navigate</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div></div></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<button class="totop" id="toTop" aria-label="Back to top"><svg class="i"><use href="#i-up"/></svg></button>
+
+<script src="/art.js"></script>
+<script src="/qr.js"></script>
+<script src="/products.js"></script>
+<script src="/mockup.js"></script>
+<script src="/pages.js"></script>
+<script src="/app.js"></script>
+<script src="/auth.js"></script>
+<script src="/admin.js"></script>
+<script src="/motion.js"></script>
+</body>
+</html>
