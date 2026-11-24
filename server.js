@@ -9,7 +9,7 @@ const { promisify } = require('util'); const scrypt = promisify(crypto.scrypt);
 const PROD = process.env.NODE_ENV === 'production';
 const PORT = +process.env.PORT || 5180;
 const HOST = process.env.HOST || (PROD ? '0.0.0.0' : '127.0.0.1');
-const SITE_URL = (process.env.SITE_URL || '').replace(/\/+$/, '');
+const SITE_URL = (process.env.SITE_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/+$/, '');
 const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 const PROXY_HOPS = Math.max(1, +process.env.TRUST_PROXY_HOPS || 1);
 const FORCE_HTTPS = process.env.FORCE_HTTPS === '1';
@@ -403,7 +403,8 @@ async function api(req, res, url) {
 
   /* ----- admin (bearer token; invisible when not configured) ----- */
   if (p.startsWith('/api/admin/')) {
-    const au = userOf(req), sessAdmin = !!(au && au.admin && (!PROD || au.totp?.enabled));
+    const au = userOf(req), sessAdmin = !!(au && au.admin && (!PROD || au.totp?.enabled || au.demo));
+    if (sessAdmin && au.demo && m !== 'GET') return fail(res, 403, 'The demo admin is read-only. Run your own copy to try the actions.');
     if (!ADMIN_ON && !sessAdmin) return fail(res, 404, 'Not found.');
     if (limited('admin:' + ip, 120)) return fail(res, 429, 'Too many requests.');
     if (!sessAdmin) {
@@ -518,6 +519,7 @@ async function api(req, res, url) {
   if (p === '/api/password/reset' && m === 'POST') {
     if (limited('reset:' + ip, 10, 3600e3)) return fail(res, 429, 'Too many attempts. Please try again later.');
     const b = await readBody(req), token = String(b.token || ''), u = db.users.find(x => x.reset && x.reset.exp > Date.now() && tEq(x.reset.h, sha(token)));
+    if (u?.demo) return fail(res, 403, 'This is a shared demo account.');
     if (!u) return fail(res, 400, 'This reset link is invalid or has expired. Request a new one.');
     const weak = weakPw(String(b.password || ''), u.email, u.name); if (weak) return fail(res, 400, weak);
     await setPw(u, String(b.password)); u.reset = null; u.verified = true; failures.delete(u.email); dropSessions(u.id); save(); audit('password_reset', { user: u.id });
@@ -549,6 +551,7 @@ async function api(req, res, url) {
     await sendVerification(req, u); return send(res, 200, { ok: true });
   }
   if (p === '/api/account' && m === 'POST') { // rename, notification preference and/or change password
+    if (u.demo) return fail(res, 403, 'This is a shared demo account, so its login details cannot be changed.');
     const b = await readBody(req);
     if (b.name !== undefined) { const n = clean(b.name, 40); if (n.length < 2) return fail(res, 400, 'Please enter your name.'); u.name = n; }
     if (b.notify !== undefined) u.notify = !!b.notify;
@@ -565,6 +568,7 @@ async function api(req, res, url) {
     return send(res, 200, { exportedAt: new Date().toISOString(), account: { ...me, twoFactor: !!totp?.enabled }, services: db.gigs.filter(g => g.owner === u.id), messages: db.messages.filter(x => x.from === u.id || x.to === u.id), orders: db.orders.filter(o => o.buyer === u.id || o.seller === u.id), reviews: db.reviews.filter(r => r.buyer === u.id || r.seller === u.id) }, { 'Content-Disposition': 'attachment; filename="my-orbitly-data.json"' });
   }
   if (p === '/api/account' && m === 'DELETE') {
+    if (u.demo) return fail(res, 403, 'This is a shared demo account, so its login details cannot be changed.');
     const b = await readBody(req).catch(() => ({})); if (limited('pw:' + u.id, 8)) return fail(res, 429, 'Too many attempts.');
     if (!(await checkPw(u, b.password))) return fail(res, 401, 'Password is wrong.');
     removeUser(u.id); audit('account_deleted', { user: u.id }); return send(res, 200, { ok: true }, { 'Set-Cookie': clearCookies(req) });
@@ -572,6 +576,7 @@ async function api(req, res, url) {
 
   /* two-factor authentication */
   if (p === '/api/2fa/setup' && m === 'POST') {
+    if (u.demo) return fail(res, 403, 'This is a shared demo account, so its login details cannot be changed.');
     if (limited('pw:' + u.id, 8)) return fail(res, 429, 'Too many attempts.');
     const b = await readBody(req); if (u.totp?.enabled) return fail(res, 400, 'Two-factor authentication is already on.');
     if (!(await checkPw(u, b.password))) return fail(res, 401, 'Your password is wrong.');
