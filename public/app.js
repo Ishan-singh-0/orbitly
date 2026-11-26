@@ -129,6 +129,7 @@ async function loadMe() {
 function applyState(st) {
   S.stats = st.stats; S.campuses = st.campuses || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
   presence(); renderStats(); renderHeroMeta(); renderProof(); renderCampus();
+  renderDemoStrip();
   if (faqPay !== !!S.cfg?.payments) { faqPay = !!S.cfg?.payments; renderFaq(); }
   $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Tweak’d'}`;
   $('#cur').title = st.rates?.updated ? 'Live exchange rates, updated ' + new Date(st.rates.updated).toLocaleString() : 'Approximate exchange rates';
@@ -266,6 +267,20 @@ function renderSellers() {
     return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}"></div><div class="s-body">${avE(AV_OFFSET + p.avatar, 'lg', p.handle)}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.campus) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
   }).join('') : `<div class="empty-card"><h3>No artists yet</h3><p>Your page could be the first one here. It takes a few minutes to set up.</p><button class="btn btn-ink btn-lg" data-act="sell">Open your artist page</button></div>`;
 }
+// one-click demo logins on the home page (only when the server offers demo accounts)
+function renderDemoStrip() {
+  const box = $('#demoStrip'), list = S.cfg?.demo; box.hidden = !list || !!S.user;
+  if (box.hidden || box.childElementCount) return;
+  box.innerHTML = `<p>Try it with a demo account</p><div>${list.map((d, i) => `<button type="button" class="demo-btn" data-trydemo="${i}"><b>${esc(d.role)}</b><small>${esc(d.about)}</small></button>`).join('')}</div>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-trydemo]'); if (!b) return;
+  const d = S.cfg.demo[+b.dataset.trydemo]; b.disabled = true;
+  const j = await callC('/api/login', { email: d.email, password: d.password }); b.disabled = false;
+  if (j.error || !j.user) return toast(j.error || 'Could not sign in', '', 'err');
+  finishLogin(j.user, `Signed in as ${d.name}`); renderDemoStrip();
+  if (d.role === 'Admin') go('/admin'); else if (d.role === 'Artist') openDash();
+});
 let faqPay = null;
 function renderFaq() {
   $('#faqList').innerHTML = FAQ.map(f => `<div class="qa"><button aria-expanded="false"><span>${f[0]}</span><span class="plus">${ic('plus')}</span></button><div class="ans"><div><p>${typeof f[1] === 'function' ? f[1]() : f[1]}</p></div></div></div>`).join('');

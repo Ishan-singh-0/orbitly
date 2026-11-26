@@ -87,8 +87,8 @@ function paintAuth(note = '') {
   $('#eye').innerHTML = ic('lock');
   busy($('#aGo'), false, signup ? 'Create account' : 'Log in');
   const dl = $('#demoLogin'), demo = S.cfg?.demo;
-  dl.hidden = signup || !demo;
-  if (demo && !signup) dl.innerHTML = `<p>Try a demo account</p><div>${demo.map((d, i) => `<button type="button" class="demo-btn" data-demo="${i}"><b>${esc(d.role)}</b><small>${esc(d.about)}</small></button>`).join('')}</div>`;
+  dl.hidden = !demo;
+  if (demo) dl.innerHTML = `<p>Try a demo account</p><div>${demo.map((d, i) => `<button type="button" class="demo-btn" data-demo="${i}"><b>${esc(d.role)}</b><small>${esc(d.about)}</small></button>`).join('')}</div>`;
   $('#aSwitch').innerHTML = signup ? 'Already have an account? <button type="button" data-mode="login">Log in</button>' : 'New here? <button type="button" data-mode="signup">Create an account</button>';
   errBox('');
 }

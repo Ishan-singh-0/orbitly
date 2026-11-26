@@ -154,6 +154,11 @@ main > section.tint { background: var(--tint); }
 .foot-word { font-family: var(--serif); font-size: clamp(6rem, 24vw, 22rem); line-height: .78; letter-spacing: -.05em; text-align: center; margin: 40px 0 .14em; padding-bottom: .06em; color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, .16); user-select: none; }
 
 /* ---- demo login + admin console ---- */
+.demo-strip { margin-top: 24px; max-width: 580px; }
+.demo-strip p { font-size: .82rem; color: var(--muted); margin-bottom: 10px; }
+.demo-strip > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.demo-strip .demo-btn:first-child { border-color: var(--pop); }
+@media (max-width: 520px) { .demo-strip > div { grid-template-columns: 1fr; } }
 .demo-login { margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--line); }
 .demo-login p { font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
 .demo-login > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
