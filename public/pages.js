@@ -28,7 +28,7 @@ const PAGES = {
       <p>Tweak’d is new, and we'd rather tell you what it is today than promise things it isn't. Artists are independent people who created their own pages, and they make and ship the products themselves. We don't verify identities. ${pay ? 'Payments are taken through Stripe and held by Tweak’d until you approve the delivery, then paid out to the artist.' : "We don't take payments yet; buyers and artists agree payment directly, so be cautious about paying in full before work begins."}</p>
       <p>Everything you see on Tweak’d, from the number of artists to who's online right now, comes from real activity on the site as it happens.</p>
       <h2>Get involved</h2>
-      <p>If you draw, paint, letter or design, <a class="ulink" href="#" data-act="sell">open your artist page</a>. If you want something made, <a class="ulink" href="/#gigs" data-scroll>browse the marketplace</a>. And if you have ideas for how we can do better, we'd love to hear them. ${contactLine().replace(/^./, c => c.toUpperCase())}.</p>`);
+      <p>If you draw, paint, letter or design, <a class="ulink" href="#" data-act="sell">apply to be an artist</a>. If you want something made, <a class="ulink" href="#" data-act="request">send a custom order</a>. And if you have ideas for how we can do better, we'd love to hear them. ${contactLine().replace(/^./, c => c.toUpperCase())}.</p>`);
   },
   privacy() {
     return pageShell('Legal', 'Privacy policy', `

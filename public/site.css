@@ -217,3 +217,4 @@ main > section.tint { background: var(--tint); }
 .page-mock .pm-body .avatar { box-shadow: 0 0 0 5px #FCF7EC; }
 .nav-in #burger, .nav-in .logo { flex: none; }
 @media (max-width: 430px) { .nav-search { display: none; }  }
+.footer a[href^="mailto:"] { overflow-wrap: anywhere; }

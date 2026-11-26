@@ -20,14 +20,13 @@ npm run check           # syntax-check every file
 
 ## Demo accounts
 
-When you run it locally (not in production) the first start creates five labelled demo accounts, one for every type of user, so you can see every side of the site without signing up. The login window shows them as one-click buttons.
+When you run it locally (not in production) the first start creates four labelled demo accounts, one for every type of user, so you can see every side of the site without signing up. The login window shows them as one-click buttons.
 
 | Role | Email | Password | What you see |
 | --- | --- | --- | --- |
 | Buyer | buyer@tweakd.demo | Buyer-Demo-2026 | Orders at every stage: waiting, quoted, delivered, completed |
 | Artist | artist@tweakd.demo | Artist-Demo-2026 | Showcase, one request to quote, work to deliver |
 | Pending artist | applicant@tweakd.demo | Applicant-Demo-2026 | Private page waiting for approval |
-| Declined artist | declined@tweakd.demo | Declined-Demo-2026 | Application not approved, can re-apply |
 | Admin | admin@tweakd.demo | Admin-Demo-2026 | Artist approvals and management at `/admin` |
 
 On a public showcase (`DEMO_SEED=1` in production) the demo accounts are shared, so their login details can't be changed or deleted and the demo admin is read-only.

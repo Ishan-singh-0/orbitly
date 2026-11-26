@@ -30,7 +30,7 @@ const KNOWLEDGE = [
   { q: 'copyright my design rights own logo character brand allowed rules terms', a: () => say('Artists keep the copyright in their art. Don’t ask for logos, characters or artwork you don’t have the right to use.', [chatBtn('Terms', () => go('/terms'))]) },
   { q: 'currency rupees dollars euro pounds inr usd', a: () => say('Use the currency menu at the top to see prices in USD, INR, EUR or GBP. Quotes are made in USD.') },
   { q: 'dark light theme mode colour of site', a: () => say('The sun and moon button at the top switches themes.', [chatBtn('Switch theme', () => $('#themeBtn').click())]) },
-  { q: 'human support person email report abuse scam help me contact team', a: () => say('Send the team a message with the contact form. To report an artist, use “Report this page” on their page.', [chatBtn('Contact form', () => go('/contact'))]) },
+  { q: 'human support person email report abuse scam help me contact team', a: () => say('Email <a class="ulink" href="mailto:tweakd.co@gmail.com">tweakd.co@gmail.com</a> or use the contact form. To report an artist, use “Report this page” on their page.', [chatBtn('Contact form', () => go('/contact'))]) },
   { q: 'thanks thank you bye great awesome cool ok', a: () => say('You’re welcome! Happy tweaking.') }
 ];
 

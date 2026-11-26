@@ -14,7 +14,7 @@ const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 const PROXY_HOPS = Math.max(1, +process.env.TRUST_PROXY_HOPS || 1);
 const FORCE_HTTPS = process.env.FORCE_HTTPS === '1';
 const COMPANY = process.env.COMPANY_NAME || 'Tweak’d';
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'tweakd.co@gmail.com';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 const MAIL_FROM = process.env.MAIL_FROM || 'Tweak’d <noreply@localhost>';
@@ -50,7 +50,6 @@ const DEMO_LIST = [
   { role: 'Buyer', name: 'Demo Buyer', email: 'buyer@tweakd.demo', password: 'Buyer-Demo-2026', about: 'Browse, customise and order' },
   { role: 'Artist', name: 'Demo Artist', email: 'artist@tweakd.demo', password: 'Artist-Demo-2026', about: 'Portfolio, listings and incoming orders' },
   { role: 'Pending artist', name: 'Demo Applicant', email: 'applicant@tweakd.demo', password: 'Applicant-Demo-2026', about: 'Application waiting for approval' },
-  { role: 'Declined artist', name: 'Demo Declined', email: 'declined@tweakd.demo', password: 'Declined-Demo-2026', about: 'Application not approved' },
   { role: 'Admin', name: 'Demo Admin', email: 'admin@tweakd.demo', password: 'Admin-Demo-2026', about: 'Management console at /admin' }
 ];
 
@@ -178,7 +177,7 @@ async function seedDemo() {
     if (!u) { u = { id: crypto.randomUUID(), name: d.name, email: d.email, seller: null, created: Date.now(), verified: true, notify: false, demo: true }; await setPw(u, d.password); db.users.push(u); made[d.role] = u; }
     if (d.role === 'Admin') u.admin = true;
   }
-  const applications = [['applicant@tweakd.demo', 'demo-applicant', 'pending', 'Demo application waiting for the admin', 4, 7], ['declined@tweakd.demo', 'demo-declined', 'rejected', 'Demo application that was not approved', 2, 9]];
+  const applications = [['applicant@tweakd.demo', 'demo-applicant', 'pending', 'Demo application waiting for the admin', 4, 7]];
   for (const [email, handle, status, headline, accent, avatar] of applications) {
     const x = db.users.find(y => y.email === email); if (!x || x.seller) continue;
     x.seller = { handle, headline, category: 'paper', bio: 'This is a demo artist account, here so you can see how an application looks from this side and in the admin console.', location: 'Delhi', website: '', country: 'India', payout: '', accent, avatar, languages: [], skills: ['Sketching'], since: Date.now() };
@@ -205,7 +204,7 @@ async function seedDemo() {
       db.messages.push({ id: db.nextMsg++, from: buyer.id, to: artist.id, text: brief, kind: 'order', gigId: 0, gigTitle: o.gigTitle, gigPrice: price, gigDays: days, orderId: o.id, created: t, read: true });
     }
   }
-  save(); bump(); console.log('[demo] demo accounts created: buyer, artist, pending artist, declined artist, admin');
+  save(); bump(); console.log('[demo] demo accounts created: buyer, artist, pending artist, admin');
 }
 
 /* ------------------------------------------------------------ rate limit */
@@ -572,7 +571,9 @@ async function api(req, res, url) {
     if (name.length < 2) return fail(res, 400, 'Please enter your name.'); if (!emailOk(email)) return fail(res, 400, 'Enter a valid email so we can reply.');
     if (message.length < 10) return fail(res, 400, 'Please write a little more.');
     db.contact.push({ id: db.nextContact++, name, email, subject, message, created: Date.now() }); if (db.contact.length > 2000) db.contact.splice(0, db.contact.length - 2000);
-    save(); audit('contact', { id: db.nextContact - 1 }); return send(res, 201, { ok: true });
+    save(); audit('contact', { id: db.nextContact - 1 });
+    if (MAIL_ON) sendMail({ to: CONTACT_EMAIL, subject: `Contact form: ${subject || 'new message'}`, text: `From: ${name} <${email}>\n\n${message}` }).catch(e => console.error('contact forward failed:', e.message));
+    return send(res, 201, { ok: true });
   }
 
   const u = u0; if (!u) return fail(res, 401, 'Please log in first.');
@@ -943,6 +944,8 @@ const server = http.createServer(async (req, res) => {
 server.headersTimeout = 20e3; server.requestTimeout = 30e3; server.keepAliveTimeout = 65e3; server.maxHeadersCount = 60;
 server.listen(PORT, HOST, () => console.log(`Tweak’d ${PROD ? '(production) ' : ''}running → http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${MAIL_ON && !RESEND_API_KEY ? '  [email: dev outbox]' : RESEND_API_KEY ? '  [email: Resend]' : '  [email: off]'}${ADMIN_ON ? '  [admin API on]' : ''}`));
 const shutdown = sig => { console.log(`\n${sig} received — saving and exiting`); try { flush(); } catch (e) { console.error(e); } process.exit(0); };
+// a demo account that is no longer offered is removed from existing databases
+db.users.filter(u => u.demo && u.email === 'declined@tweakd.demo').forEach(u => removeUser(u.id));
 if (DEMO_ON) seedDemo().catch(e => console.error('demo seed failed:', e.message));
 process.on('SIGINT', () => shutdown('SIGINT')); process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('uncaughtException', e => { console.error('FATAL uncaught exception:', e); try { flush(); } catch {} process.exit(1); }); // let the supervisor restart a clean process
