@@ -8,7 +8,7 @@ if (!CALM) {
 
   // elements fly in as they scroll into view, one after another within a group
   const io = new IntersectionObserver(list => list.forEach(e => { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); if (e.target.matches('#liveStrip')) countUp(); } }), { threshold: .12 });
-  const TARGETS = '.prod, .shot, .s-card, .campus, .work, .qa, .cta-list li, .pf-sec, .foot-top > div, #liveStrip';
+  const TARGETS = '.prod, .shot, .s-card, .place, .work, .qa, .cta-list li, .foot-top > div, #liveStrip';
   fxScan = () => document.querySelectorAll(TARGETS).forEach((el, i) => { if (el.dataset.fx) return; el.dataset.fx = '1'; if (!el.style.getPropertyValue('--i')) el.style.setProperty('--i', i % 8); el.classList.add('pop-in'); io.observe(el); });
 
   function countUp() {
@@ -25,7 +25,7 @@ if (!CALM) {
       if (node.nodeType === 3) { const f = document.createDocumentFragment(); node.textContent.split(/(\s+)/).forEach(w => { if (!w.trim()) return f.append(w); const s = document.createElement('span'); s.className = 'wd'; s.style.setProperty('--w', n++); s.textContent = w; f.append(s); }); node.replaceWith(f); }
       else [...node.childNodes].forEach(wrap);
     };
-    wrap(h); h.classList.add('split'); io.observe(h);
+    wrap(h); h.classList.add('by-word'); io.observe(h);
   });
 
   // paint blobs drifting behind the hero, moving at different speeds as you scroll
@@ -36,10 +36,12 @@ if (!CALM) {
 
   if (matchMedia('(hover: hover)').matches) {
     // a soft dot trails the pointer and grows over anything clickable
-    const dot = document.createElement('div'); dot.className = 'trail'; document.body.appendChild(dot);
+    const dot = document.createElement('div'); dot.className = 'trail idle'; document.body.appendChild(dot);
     let x = -100, y = -100, cx = -100, cy = -100, running = false;
     const move = () => { cx += (x - cx) * .18; cy += (y - cy) * .18; dot.style.transform = `translate(${cx}px, ${cy}px)`; if (Math.abs(x - cx) + Math.abs(y - cy) > .3) requestAnimationFrame(move); else running = false; };
-    addEventListener('pointermove', e => { x = e.clientX; y = e.clientY; dot.classList.toggle('big', !!e.target.closest('a, button, label, .prod, .shot')); if (!running) { running = true; requestAnimationFrame(move); } }, { passive: true });
+    addEventListener('pointermove', e => { if (dot.classList.contains('idle')) { cx = e.clientX; cy = e.clientY; dot.classList.remove('idle'); } x = e.clientX; y = e.clientY; dot.classList.toggle('big', !!e.target.closest('a, button, label, .prod, .shot')); if (!running) { running = true; requestAnimationFrame(move); } }, { passive: true });
+
+    document.documentElement.addEventListener('pointerleave', () => dot.classList.add('idle'));
 
     // buttons lean toward the pointer, cards tilt under it
     document.addEventListener('pointermove', e => {
@@ -64,6 +66,6 @@ if (!CALM) {
   };
 
   new MutationObserver(() => fxScan()).observe(document.getElementById('sellerRow'), { childList: true });
-  new MutationObserver(() => fxScan()).observe(document.getElementById('campusRow'), { childList: true });
+  new MutationObserver(() => fxScan()).observe(document.getElementById('placeRow'), { childList: true });
   fxScan();
 }

@@ -56,12 +56,12 @@
       <div class="hero-copy">
         <p class="hero-meta" id="heroMeta">Free to join, free to list</p>
         <h1><span class="ln"><span>Art you</span></span> <span class="ln"><span>can <em>carry.</em></span></span></h1>
-        <p class="lead">Bring your own bag, mouse or hoodie. Share what inspires you, and an artist from your campus or anywhere in the world makes it yours.</p>
+        <p class="lead">Bring your own bag, mouse or hoodie. Share what inspires you, and an artist near you or anywhere in the world makes it yours.</p>
         <div class="hero-cta"><button class="btn btn-pop btn-lg magnet" data-act="request">Customise my item</button><a class="btn btn-line btn-lg magnet" href="/#gallery" data-scroll>See artists' work</a></div>
         <div class="demo-strip" id="demoStrip" hidden></div>
         <form class="hero-search" id="heroForm" autocomplete="off">
           <svg class="i"><use href="#i-search"/></svg>
-          <input id="heroIn" placeholder="Search artwork, artists or campuses" aria-label="Search">
+          <input id="heroIn" placeholder="Search artwork, artists or places" aria-label="Search">
           <button type="button" class="clear" id="heroClear" aria-label="Clear"><svg class="i"><use href="#i-x"/></svg></button>
           <button class="btn btn-ink" type="submit">Search</button>
           <div class="suggest" id="suggest"></div>
@@ -107,10 +107,10 @@
     </div>
   </section>
 
-  <section id="campus" hidden>
+  <section id="places" hidden>
     <div class="container">
-      <div class="sec-head reveal"><h2>Artists by <em>campus</em></h2><p>Find students and alumni from a college near you, or one you miss.</p></div>
-      <div class="campus-row" id="campusRow"></div>
+      <div class="sec-head reveal"><h2>Artists by <em>location</em></h2><p>Find someone close enough to meet, or an artist from the other side of the world.</p></div>
+      <div class="place-row" id="placeRow"></div>
     </div>
   </section>
 
@@ -125,11 +125,11 @@
     <div class="container">
       <div class="cta reveal">
         <div class="cta-copy"><h2>Bring your art to <em>Tweak’d</em></h2><p>Show your creations in one place and let people ask you to make their things special. Apply, and once approved your showcase goes live.</p>
-          <ul class="cta-list"><li><span></span>Upload your showcase</li><li><span></span>Set your own price on every order</li><li><span></span>Reach your campus and the world</li></ul>
+          <ul class="cta-list"><li><span></span>Upload your showcase</li><li><span></span>Set your own price on every order</li><li><span></span>Reach people near you and worldwide</li></ul>
           <button class="btn btn-pop btn-lg magnet" id="sellBtn">Apply to be an artist</button></div>
         <div class="page-mock" aria-hidden="true">
           <div class="pm-ban" id="pmBan"></div>
-          <div class="pm-body"><span class="avatar lg" id="pmAv"></span><div><b>Your name</b><small>Illustrator · Your campus</small><span class="pm-url mono" id="pmUrl">/@yourname</span><span class="mono" id="exAddr" hidden></span></div></div>
+          <div class="pm-body"><span class="avatar lg" id="pmAv"></span><div><b>Your name</b><small>Illustrator · Your city</small><span class="pm-url mono" id="pmUrl">/@yourname</span><span class="mono" id="exAddr" hidden></span></div></div>
           <div class="pm-chips"><span>Illustration</span><span>Lettering</span><span>Pattern</span></div>
           <div class="pm-svc"><div class="pm-art" id="pmArt"></div><div><b>A new custom order</b><small>Waiting for your quote</small></div><span class="pm-price">New</span></div>
           <span class="pm-note">Example</span>
@@ -165,7 +165,7 @@
   </div>
 </footer>
 
-<div class="overlay" id="qvOv"><div class="modal" id="qv" role="dialog" aria-modal="true" aria-label="Listing details"></div></div>
+<div class="overlay" id="qvOv"><div class="modal" id="qv" role="dialog" aria-modal="true" aria-label="Details"></div></div>
 <div class="overlay top" id="cmdOv"><div class="cmd" role="dialog" aria-modal="true" aria-label="Search"><div class="cmd-in"><svg class="i"><use href="#i-search"/></svg><input id="cmdIn" placeholder="Search products, artists, actions…" autocomplete="off"></div><div class="cmd-list" id="cmdList"></div><div class="cmd-foot"><span><kbd>↑↓</kbd> navigate</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <button class="totop" id="toTop" aria-label="Back to top"><svg class="i"><use href="#i-up"/></svg></button>

@@ -124,9 +124,9 @@ main > section.tint { background: var(--tint); }
 .steps h3 { font-size: 1.5rem; font-weight: 500; margin-bottom: 8px; letter-spacing: -.02em; }
 .steps p { color: var(--ink2); max-width: 440px; }
 
-/* ---- campus + artists ---- */
-.campus { border-radius: 99px; padding: 14px 24px; transition: all .25s var(--ease); }
-.campus:hover { transform: translateY(-2px); }
+/* ---- locations + artists ---- */
+.place { border-radius: 99px; padding: 14px 24px; transition: all .25s var(--ease); }
+.place:hover { transform: translateY(-2px); }
 .seller-row { gap: 20px; }
 .s-card { border-radius: var(--r); transition: transform .4s var(--ease), box-shadow .4s var(--ease); }
 .s-card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -30px rgba(0, 0, 0, .4); }

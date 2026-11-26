@@ -20,7 +20,7 @@ const CATS = PRODUCT_GROUPS;
 const CAT_SHORT = Object.fromEntries(PRODUCT_GROUPS.map(g => [g.id, g.name]));
 const prodById = id => PRODUCTS.find(p => p.id === id);
 const FAQ = [
-  ['What is Tweak’d?', 'A place to get your own things customised by artists. Bring a bag, a mouse, a hoodie or anything else, share what inspires you, and an artist from your campus or anywhere in the world makes it yours.'],
+  ['What is Tweak’d?', 'A place to get your own things customised by artists. Bring a bag, a mouse, a hoodie or anything else, share what inspires you, and an artist near you or anywhere in the world makes it yours.'],
   ['How do I place an order?', 'Press "Customise my item". Pick what you have, choose an artist, add inspiration pictures and notes, and send it. The artist replies with a quote. Nothing starts until you accept it.'],
   ['Do I have to buy a finished product?', 'No. Tweak’d is for customising something you already own or want made your way. Artists show their work as a showcase so you can choose whose style you like.'],
   ['What goes in the inspiration tab?', 'Up to six pictures, links to things you like, and optionally one piece from the artist’s showcase. Only you, that artist and Tweak’d admins can see your pictures.'],
@@ -31,15 +31,15 @@ const FAQ = [
 ];
 const SYM = { USD: '$', INR: '₹', EUR: '€', GBP: '£' };
 const HOME_TITLE = 'Tweak’d — Your things, customised by artists';
-const HOME_DESC = 'Get your bag, mouse, hoodie or anything else customised by artists from your campus and around the world. Share your inspiration, get a quote, and make it yours.';
+const HOME_DESC = 'Get your bag, mouse, hoodie or anything else customised by artists near you and around the world. Share your inspiration, get a quote, and make it yours.';
 
 // ---------------------------------------------------------------- state
 
 const S = {
   cur: store.get('cur', 'USD'), q: '', shown: 12,
   user: null, unread: 0, alerts: 0, cfg: null, v: 0, sellers: [], online: new Set(),
-  campus: '',
-  stats: { members: 0, sellers: 0, services: 0, online: 0 }, campuses: [],
+  place: '',
+  stats: { members: 0, sellers: 0, services: 0, online: 0 }, places: [],
   rates: { USD: 1, INR: 83, EUR: 0.92, GBP: 0.79 }
 };
 let G = [];                     // artwork in the gallery
@@ -92,7 +92,7 @@ async function callC(url, body, { always = true } = {}) {
 
 async function loadGallery() {
   const j = await call('GET', '/api/gallery'); if (j.error) return;
-  G = j.works; renderGallery(); renderHero(); if (!matchMedia('(prefers-reduced-motion: reduce)').matches) paintDemo(false);
+  G = j.works; renderGallery(); renderHero(); paintDemo(false);
 }
 async function loadSellers() {
   const j = await call('GET', '/api/sellers'); if (j.error) return;
@@ -108,8 +108,8 @@ async function loadMe() {
 // ---------------------------------------------------------------- live updates (server-sent events)
 
 function applyState(st) {
-  S.stats = st.stats; S.campuses = st.campuses || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
-  presence(); renderStats(); renderHeroMeta(); renderProof(); renderCampus();
+  S.stats = st.stats; S.places = st.places || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
+  presence(); renderStats(); renderHeroMeta(); renderProof(); renderPlaces();
   renderDemoStrip();
   if (faqPay !== !!S.cfg?.payments) { faqPay = !!S.cfg?.payments; renderFaq(); }
   $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Tweak’d'}`;
@@ -187,7 +187,7 @@ function renderStats() {
   const s = S.stats, box = $('#liveStrip');
   box.innerHTML = s.members === 0
     ? `<p class="strip-empty">Tweak’d has just opened. <button class="linklike" data-act="sell">Open the first artist page</button></p>`
-    : `<ul class="strip"><li><b data-count="${s.members}">${s.members}</b> members</li><li><b data-count="${s.sellers}">${s.sellers}</b> artists</li><li><b data-count="${s.artworks || 0}">${s.artworks || 0}</b> artworks</li><li><b data-count="${s.online}">${s.online}</b> online now</li></ul>`;
+    : `<ul class="strip"><li><b data-count="${s.members}">${s.members}</b> ${s.members === 1 ? 'member' : 'members'}</li><li><b data-count="${s.sellers}">${s.sellers}</b> ${s.sellers === 1 ? 'artist' : 'artists'}</li><li><b data-count="${s.artworks || 0}">${s.artworks || 0}</b> ${s.artworks === 1 ? 'artwork' : 'artworks'}</li><li><b data-count="${s.online}">${s.online}</b> online now</li></ul>`;
 }
 function renderHeroMeta() {
   const s = S.stats;
@@ -241,7 +241,7 @@ function renderHero() {
     if (sw) { demo.c = +sw.dataset.dc; paintDemo(false); }
     if (tab) { demo.p = tab.dataset.dp; demo.c = Math.min(demo.c, prodById(demo.p).colors.length - 1); paintDemo(true); }
   };
-  art.addEventListener('pointerenter', () => { demo.hold = Infinity; }); art.addEventListener('pointerleave', () => { demo.hold = Date.now() + 2500; });
+  art.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') demo.hold = Infinity; }); art.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') demo.hold = Date.now() + 2500; });
   paintDemo(false);
   clearInterval(demo.timer); demo.timer = setInterval(turnHero, TURN_MS);
 }
@@ -250,11 +250,11 @@ function renderCats() {
     + `<button class="prod prod-other" data-prod="other" style="--i:${PRODUCTS.length}"><span class="prod-plus">+</span><span class="prod-t"><span><b>Something else</b><small>Anything you own</small></span></span></button>`;
   $('#popChips').innerHTML = ['Tote bag', 'Computer mouse', 'Hoodie', 'Sneakers', 'Skateboard'].map(p => `<button class="chip" data-q="${p}">${p}</button>`).join('');
 }
-let campusSig = '';
-function renderCampus() {
-  const sig = JSON.stringify(S.campuses) + S.campus; if (sig === campusSig) return; campusSig = sig;
-  $('#campus').hidden = !S.campuses.length;
-  $('#campusRow').innerHTML = S.campuses.map(c => `<button class="campus ${S.campus === c.name ? 'on' : ''}" data-campus="${esc(c.name)}"><b>${esc(c.name)}</b><small>${plural(c.artists, 'artist')}</small></button>`).join('');
+let placeSig = '';
+function renderPlaces() {
+  const sig = JSON.stringify(S.places) + S.place; if (sig === placeSig) return; placeSig = sig;
+  $('#places').hidden = !S.places.length;
+  $('#placeRow').innerHTML = S.places.map(c => `<button class="place ${S.place === c.name ? 'on' : ''}" data-place="${esc(c.name)}"><b>${esc(c.name)}</b><small>${plural(c.artists, 'artist')}</small></button>`).join('');
   }
 let sellerSig = null;
 function renderSellers() {
@@ -262,7 +262,7 @@ function renderSellers() {
   if (sig === sellerSig) return; sellerSig = sig;
   $('#sellerRow').innerHTML = S.sellers.length ? S.sellers.slice(0, 8).map(p => {
     const colour = PALS[p.accent % 8][1], joined = new Date(p.since).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}"></div><div class="s-body">${avE(AV_OFFSET + p.avatar, 'lg', p.handle)}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.campus) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
+    return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}"></div><div class="s-body">${avE(AV_OFFSET + p.avatar, 'lg', p.handle)}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.place) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
   }).join('') : `<div class="empty-card"><h3>No artists yet</h3><p>Your page could be the first one here. It takes a few minutes to set up.</p><button class="btn btn-ink btn-lg" data-act="sell">Open your artist page</button></div>`;
 }
 // one-click demo logins on the home page (only when the server offers demo accounts)
@@ -297,14 +297,14 @@ function renderExamplePage() {
 // ---------------------------------------------------------------- gallery: artists show their work here
 
 const workCard = (w, i) => `<figure class="shot" style="--i:${i}"><button type="button" class="shot-img" data-work="${esc(w.url)}" data-wt="${esc(w.title)}" data-wh="${esc(w.handle)}" data-wid="${esc(w.id)}" aria-label="View ${esc(w.title)}"><img src="${esc(w.url)}" alt="${esc(w.title)}" loading="lazy"></button>
-  <figcaption><div><b>${esc(w.title)}</b><a href="/@${esc(w.handle)}" data-nav>${esc(w.artist)}${w.campus ? ' · ' + esc(w.campus) : ''}</a></div><button type="button" class="btn btn-ink btn-sm" data-ask="${esc(w.handle)}" data-ref="${esc(w.id)}">Order in this style</button></figcaption></figure>`;
+  <figcaption><div><b>${esc(w.title)}</b><a href="/@${esc(w.handle)}" data-nav>${esc(w.artist)}${w.place ? ' · ' + esc(w.place) : ''}</a></div><button type="button" class="btn btn-ink btn-sm" data-ask="${esc(w.handle)}" data-ref="${esc(w.id)}">Order in this style</button></figcaption></figure>`;
 function filtered() {
   const q = S.q.toLowerCase();
-  return G.filter(w => (!S.campus || w.campus === S.campus) && (!q || `${w.title} ${w.artist} ${w.campus} ${w.country}`.toLowerCase().includes(q)));
+  return G.filter(w => (!S.place || w.place === S.place) && (!q || `${w.title} ${w.artist} ${w.place}`.toLowerCase().includes(q)));
 }
 function renderGallery() {
   const all = filtered(), shown = all.slice(0, S.shown);
-  const tags = [S.q && ['q', `“${esc(S.q)}”`], S.campus && ['campus', esc(S.campus)]].filter(Boolean);
+  const tags = [S.q && ['q', `“${esc(S.q)}”`], S.place && ['place', esc(S.place)]].filter(Boolean);
   $('#activeF').innerHTML = tags.map(([k, l]) => `<span class="af">${l}<button data-clearf="${k}" aria-label="Remove filter">${ic('x')}</button></span>`).join('');
   $('#gallery-grid').innerHTML = shown.length ? shown.map(workCard).join('')
     : `<div class="empty"><span class="empty-art">${mockup('mug', '#F4F3EF', sampleArt(7), { bg: 'transparent' })}</span><h3>${G.length ? 'Nothing matches that yet' : 'The first artwork is on its way'}</h3><p>${G.length ? 'Try another word, or send a request and describe what you want.' : 'Approved artists upload their work here as soon as they join.'}</p><div class="btn-row"><button class="btn btn-ink btn-lg" data-act="request">Order something custom</button></div></div>`;
@@ -313,7 +313,7 @@ function renderGallery() {
 }
 function clearFilter(kind) {
   if (kind === 'q') { S.q = ''; $('#heroIn').value = ''; $('#heroClear').classList.remove('show'); }
-  if (kind === 'campus') { S.campus = ''; campusSig = ''; renderCampus(); }
+  if (kind === 'place') { S.place = ''; placeSig = ''; renderPlaces(); }
   renderGallery();
 }
 function setQuery(q) { S.q = q; S.shown = 12; $('#heroIn').value = q; $('#heroClear').classList.toggle('show', !!q); renderGallery(); goHash('gallery'); }
@@ -327,7 +327,7 @@ const heroInput = $('#heroIn'), suggestBox = $('#suggest'); let suggestSel = -1;
 const highlight = (text, q) => q ? text.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>') : text;
 function showSuggestions() {
   const q = heroInput.value.trim(); $('#heroClear').classList.toggle('show', !!q);
-  const pool = [...new Set([...G.map(w => w.title), ...S.sellers.map(s => s.name), ...S.campuses.map(c => c.name)])];
+  const pool = [...new Set([...G.map(w => w.title), ...S.sellers.map(s => s.name), ...S.places.map(c => c.name)])];
   const items = (q ? pool.filter(t => t.toLowerCase().includes(q.toLowerCase())) : pool).slice(0, 5);
   suggestSel = -1;
   suggestBox.innerHTML = items.length ? items.map(t => `<button type="button" data-q="${esc(t)}">${ic('search')}<span>${highlight(esc(t), esc(q))}</span></button>`).join('') : '<button type="button">No suggestions. Press Enter to search anyway.</button>';
@@ -408,7 +408,7 @@ function profileHTML(p, reviews, art) {
     ${waiting ? `<div class="pf-wait">${ic('clock')} ${S.user.artist === 'rejected' ? 'Your application was not approved. Update your page and save it to apply again.' : 'Only you can see this page until an admin approves your application.'}</div>` : ''}
     <div class="pf-head">${avE(p.avatar, 'xl', p.handle)}
       <div class="pf-id"><h1>${esc(p.name)}</h1><p class="hl">${esc(p.headline)}</p>
-        <div class="pf-meta">${p.reviews ? `<span class="rate">${ic('star', 'fill')}<b>${p.rating.toFixed(1)}</b><small>(${plural(p.reviews, 'review')})</small></span>` : ''}${p.campus ? `<span>${ic('briefcase')}${esc(p.campus)}</span>` : ''}${p.location || p.country ? `<span>${ic('pin')}${esc([p.location, p.country].filter(Boolean).join(', '))}</span>` : ''}<span class="online-txt" data-ptxt="${esc(p.handle)}" ${S.online.has(p.handle) ? '' : 'hidden'}>Online now</span><span>${ic('clock')}Member since ${since}</span></div></div>
+        <div class="pf-meta">${p.reviews ? `<span class="rate">${ic('star', 'fill')}<b>${p.rating.toFixed(1)}</b><small>(${plural(p.reviews, 'review')})</small></span>` : ''}${p.place ? `<span>${ic('pin')}${esc(p.place)}</span>` : ''}<span class="online-txt" data-ptxt="${esc(p.handle)}" ${S.online.has(p.handle) ? '' : 'hidden'}>Online now</span><span>${ic('clock')}Member since ${since}</span></div></div>
       <div class="pf-actions">${main('')}${mine ? '' : `<button class="btn btn-line" data-contact="${esc(p.handle)}">${ic('chat')} Message</button>`}<button class="btn btn-line" data-share="${esc(p.handle)}">${ic('share')} Share</button></div></div>
     <nav class="pf-nav" id="pfNav" aria-label="Page sections"><a href="#pf-work" data-pf="pf-work">Showcase</a><a href="#pf-about" data-pf="pf-about">About</a><a href="#pf-reviews" data-pf="pf-reviews">Reviews</a></nav>
     <div class="pf-grid"><div>
@@ -417,7 +417,7 @@ function profileHTML(p, reviews, art) {
       <section class="pf-sec" id="pf-reviews"><h2>Reviews${p.reviews ? ` <small>${p.rating.toFixed(1)} average from ${plural(p.reviews, 'review')}</small>` : ''}</h2>${reviews.length ? reviews.map(reviewHTML).join('') : `<div class="empty-s"><b>No reviews yet</b>Reviews appear here after a customer completes an order.</div>`}</section>
     </div>
     <aside class="pf-side"><div class="card side-card"><div class="from">Custom work</div><div class="amt">Get a quote</div>${main('btn-block btn-lg')}<button class="btn btn-line btn-block" data-share="${esc(p.handle)}">${ic('link')} Copy page link</button></div>
-      <div class="card side-card"><ul class="facts"><li><span>Member since</span><b>${since}</b></li>${cat ? `<li><span>Mostly makes</span><b>${cat.name}</b></li>` : ''}${p.campus ? `<li><span>Campus</span><b>${esc(p.campus)}</b></li>` : ''}<li><span>Artworks</span><b>${art.length}</b></li>${p.completed ? `<li><span>Orders completed</span><b>${p.completed}</b></li>` : ''}
+      <div class="card side-card"><ul class="facts"><li><span>Member since</span><b>${since}</b></li>${cat ? `<li><span>Mostly makes</span><b>${cat.name}</b></li>` : ''}${p.place ? `<li><span>Location</span><b>${esc(p.place)}</b></li>` : ''}<li><span>Artworks</span><b>${art.length}</b></li>${p.completed ? `<li><span>Orders completed</span><b>${p.completed}</b></li>` : ''}
         ${p.languages?.length ? `<li><span>Languages</span><b>${p.languages.map(esc).join(', ')}</b></li>` : ''}${site ? `<li><span>Website</span><b>${site}</b></li>` : ''}</ul></div>
       ${mine ? '' : `<a class="report-link" href="/contact?report=${esc(p.handle)}" data-nav>${ic('flag')} Report this page</a>`}</aside></div></div>`;
 }
@@ -440,7 +440,7 @@ let cmdSel = 0, cmdItems = [];
 function paintCmd() {
   const q = $('#cmdIn').value.trim().toLowerCase();
   const ps = PRODUCTS.filter(p => p.name.toLowerCase().includes(q)).slice(0, q ? 5 : 3).map(p => ({ ico: ic('edit'), t: 'Customise a ' + p.name.toLowerCase(), run: () => openRequest({ product: p.id }) }));
-  const ss = S.sellers.filter(s => `${s.name} ${s.headline} ${s.campus}`.toLowerCase().includes(q)).slice(0, q ? 4 : 3).map(s => ({ ico: avatar(AV_OFFSET + s.avatar), t: esc(s.name), run: () => go('/@' + s.handle) }));
+  const ss = S.sellers.filter(s => `${s.name} ${s.headline} ${s.place}`.toLowerCase().includes(q)).slice(0, q ? 4 : 3).map(s => ({ ico: avatar(AV_OFFSET + s.avatar), t: esc(s.name), run: () => go('/@' + s.handle) }));
   const acts = ACTIONS.filter(a => a[1].toLowerCase().includes(q)).map(a => ({ ico: ic(a[0]), t: a[1], run: a[2] }));
   cmdItems = [...ps, ...ss, ...acts]; cmdSel = 0; let offset = 0;
   const section = (title, arr) => { const html = arr.length ? `<h6>${title}</h6>` + arr.map((x, i) => `<button class="cmd-item" data-ci="${offset + i}"><span class="ico">${x.ico}</span>${x.t}</button>`).join('') : ''; offset += arr.length; return html; };
@@ -475,7 +475,7 @@ document.addEventListener('click', e => {
   const prodBtn = e.target.closest('[data-prod]'); if (prodBtn) return openRequest({ product: prodBtn.dataset.prod });
   const work = e.target.closest('[data-work]');
   if (work) return openDyn(`<div class="light"><img src="${esc(work.dataset.work)}" alt="${esc(work.dataset.wt)}"><p>${esc(work.dataset.wt)}</p>${S.user?.seller?.handle === work.dataset.wh ? '' : `<button class="btn btn-pop" data-ask="${esc(work.dataset.wh)}" data-ref="${esc(work.dataset.wid)}">Order something in this style</button>`}</div>`, 'wide');
-  const campusBtn = e.target.closest('[data-campus]'); if (campusBtn) { S.campus = S.campus === campusBtn.dataset.campus ? '' : campusBtn.dataset.campus; S.shown = 12; campusSig = ''; renderCampus(); renderGallery(); return goHash('gallery'); }
+  const placeBtn = e.target.closest('[data-place]'); if (placeBtn) { S.place = S.place === placeBtn.dataset.place ? '' : placeBtn.dataset.place; S.shown = 12; placeSig = ''; renderPlaces(); renderGallery(); return goHash('gallery'); }
   const query = e.target.closest('[data-q]'); if (query) { if (location.pathname !== '/') { history.pushState({}, '', '/'); showHome(); } return setQuery(query.dataset.q); }
   const contact = e.target.closest('[data-contact]'); if (contact) return openMessage(contact.dataset.contact);
   const share = e.target.closest('[data-share]'); if (share) { const url = location.origin + '/@' + share.dataset.share; navigator.clipboard?.writeText(url).catch(() => {}); return toast('Link copied', url); }

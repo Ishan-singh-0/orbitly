@@ -173,7 +173,7 @@ function paintOnboard() {
     <form id="sellForm" novalidate>
       <label class="field"><span>Your page address</span><div class="pfx"><b>${esc(location.host)}/@</b><input name="handle" maxlength="24" value="${esc(handle)}" autocapitalize="off" spellcheck="false"></div></label>
       <label class="field"><span>Headline</span><input name="headline" maxlength="70" placeholder="Illustrator turning doodles into desk gear"></label>
-      <div class="row2"><label class="field"><span>Campus or college <em class="opt">(optional)</em></span><input name="campus" maxlength="60" placeholder="e.g. IIT Delhi"></label><label class="field"><span>Country <em class="opt">(optional)</em></span><input name="country" maxlength="40" placeholder="India"></label></div>
+      <div class="row2"><label class="field"><span>City <em class="opt">(optional)</em></span><input name="location" maxlength="40" placeholder="e.g. Mumbai"></label><label class="field"><span>Country <em class="opt">(optional)</em></span><input name="country" maxlength="40" placeholder="India"></label></div>
       <label class="field"><span>What do you mostly make?</span><select name="category">${catOpts('bags')}</select></label>
       <label class="field"><span>About you</span><textarea name="bio" rows="4" maxlength="800" placeholder="What do you draw or make? What styles are you known for? Who have you worked with?"></textarea><small id="bioN">0 / 800</small></label>
       <button class="btn btn-ink btn-lg btn-block" id="sGo">Send application</button></form></div>`, 'narrow');
@@ -208,8 +208,8 @@ function paintTab(tab) {
     <div id="aErr"></div><form id="profForm" novalidate>
       <label class="field"><span>Your page address</span><div class="pfx"><b>${esc(location.host)}/@</b><input name="handle" maxlength="24" value="${esc(s.handle)}" autocapitalize="off" spellcheck="false"></div></label>
       <div class="row2"><label class="field"><span>Headline</span><input name="headline" maxlength="70" value="${esc(s.headline)}"></label><label class="field"><span>What you mostly make</span><select name="category">${catOpts(s.category)}</select></label></div>
-      <div class="row2"><label class="field"><span>Campus or college</span><input name="campus" maxlength="60" value="${esc(s.campus || '')}" placeholder="e.g. IIT Delhi"></label><label class="field"><span>Country</span><input name="country" maxlength="40" value="${esc(s.country || '')}" placeholder="India"></label></div>
-      <div class="row2"><label class="field"><span>City</span><input name="location" maxlength="40" value="${esc(s.location)}" placeholder="City"></label><label class="field"><span>Languages</span><input name="languages" maxlength="80" value="${esc((s.languages || []).join(', '))}" placeholder="English, Hindi"></label></div>
+      <div class="row2"><label class="field"><span>City</span><input name="location" maxlength="40" value="${esc(s.location || '')}" placeholder="e.g. Mumbai"></label><label class="field"><span>Country</span><input name="country" maxlength="40" value="${esc(s.country || '')}" placeholder="India"></label></div>
+      <div class="row2"><label class="field"><span>Languages</span><input name="languages" maxlength="80" value="${esc((s.languages || []).join(', '))}" placeholder="English, Hindi"></label></div>
       <label class="field"><span>Skills (comma separated, up to 8)</span><input name="skills" maxlength="200" value="${esc((s.skills || []).join(', '))}" placeholder="Illustration, Lettering, Screen printing"></label>
       <label class="field"><span>Website</span><input name="website" maxlength="100" value="${esc(s.website)}" placeholder="https://yourportfolio.com"></label>
       <label class="field"><span>How should we pay you? <em class="opt">(private)</em></span><input name="payout" maxlength="200" value="${esc(u.payout || '')}" placeholder="UPI ID, PayPal email or bank details note"><small>Only the Tweak’d team can see this. It's used when an order you completed has been paid for online.</small></label>
@@ -376,8 +376,8 @@ function openSettings() {
     <hr class="sep"><h3>Change password</h3>
     <form id="pwForm" novalidate><div class="ferr"></div><label class="field"><span>Current password</span><input name="current" type="password" autocomplete="current-password" maxlength="100"></label><label class="field"><span>New password</span><input name="next" type="password" autocomplete="new-password" maxlength="100"></label><div class="meter"><i></i><i></i><i></i><i></i></div><button class="btn btn-line">Update password</button></form>
     <hr class="sep"><h3>Devices</h3><div id="devBox"><p class="sub">Loading…</p></div>
-    <hr class="sep"><h3>Your data</h3><p class="sub" style="margin-bottom:14px">Download a copy of everything we hold about you: account, services, orders, reviews and messages.</p><a class="btn btn-line" href="/api/account/export" download>${ic('download')} Download my data</a>
-    <hr class="sep"><h3 class="danger">Delete account</h3><p class="sub" style="margin-bottom:14px">This permanently removes your profile, services, orders and messages. It can't be undone.</p>
+    <hr class="sep"><h3>Your data</h3><p class="sub" style="margin-bottom:14px">Download a copy of everything we hold about you: account, showcase, orders, inspiration pictures, reviews and messages.</p><a class="btn btn-line" href="/api/account/export" download>${ic('download')} Download my data</a>
+    <hr class="sep"><h3 class="danger">Delete account</h3><p class="sub" style="margin-bottom:14px">This permanently removes your page, showcase, orders and messages. It can't be undone.</p>
     <form id="delForm" novalidate><div class="ferr"></div><label class="field"><span>Confirm with your password</span><input name="password" type="password" autocomplete="current-password" maxlength="100"></label><button class="btn btn-danger">Delete my account</button></form></div>`, 'narrow');
   renderMfaBox(u.twoFactor ? 'on' : 'off'); loadDevices();
 }

@@ -18,9 +18,9 @@ const PAGES = {
     const pay = !!S.cfg?.payments;
     return pageShell('About', 'Art you can use every day.', `
       <p class="big">Tweak’d is where artists put their work on things people actually use, and where anyone can order a bag, a mouse, a mug or a hoodie made by someone whose portfolio they can see first.</p>
-      <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly, across campuses and across countries.</p>
+      <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly, whether they live down the road or across the world.</p>
       <h2>What you get</h2>
-      <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their showcase, story and campus. Artist accounts are approved by an admin.</li>
+      <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their showcase, story and location. Artist accounts are approved by an admin.</li>
       <li><b>Custom orders.</b> Tell an artist what you own, share your inspiration, and get a quote before anything starts.</li>
       <li><b>Direct conversations.</b> Buyers message artists from their page. Replies arrive in real time.</li>
       <li><b>Simple orders and honest reviews.</b> Requests move from requested to delivered to completed, and only buyers who finished an order can review it.</li></ul>
@@ -37,16 +37,16 @@ const PAGES = {
       <h2>2. What we collect</h2>
       <ul><li><b>Account details:</b> your name and email address, and a securely hashed version of your password (we never store the password itself).</li>
       <li><b>Order requests:</b> the item you describe, notes, budget, links and inspiration pictures. Pictures are visible only to you, the artist you chose and admins.</li>
-      <li><b>Artist page content:</b> if you open an artist page, the headline, bio, campus, country, city, languages, skills, website, listings and the images you upload. This content is public. Uploaded images are re-encoded in your browser, which removes camera metadata such as location.</li>
+      <li><b>Artist page content:</b> if you open an artist page, the headline, bio, city, country, languages, skills, website and the images you upload. This content is public. Uploaded images are re-encoded in your browser, which removes camera metadata such as location.</li>
       <li><b>Payout details:</b> if you sell, you may tell us how to pay you (for example a UPI ID or PayPal email). Only the Tweak’d team can see it.</li>
       <li><b>Payments:</b> when online payment is on, card payments are handled entirely by Stripe on its own checkout page. We never see or store card numbers; we keep the order, amount and Stripe's payment reference.</li>
-      <li><b>Messages:</b> the messages and service requests you send and receive. These are visible only to the people in the conversation.</li>
+      <li><b>Messages:</b> the messages and order requests you send and receive. These are visible only to the people in the conversation.</li>
       <li><b>Orders and reviews:</b> the requests you make or receive and their status. A review you leave is public on the seller's page, shown with your first name and last initial.</li>
       <li><b>Security settings:</b> if you turn on two-step verification we store your authenticator secret in encrypted form and your recovery codes as one-way hashes. For each signed-in device we keep a short browser and system description and the sign-in time, so you can review and sign out your devices.</li>
       <li><b>Contact form:</b> your name, email and message if you write to us.</li>
       <li><b>Technical and security data:</b> your IP address is used in memory to prevent abuse (for example, rate limiting sign-in attempts). Security events such as failed sign-ins, password resets and account deletions may be written to our server logs together with an IP address or account ID, and are kept only as long as needed to protect the service.</li></ul>
       <h2>3. Cookies and local storage</h2>
-      <p>We use one cookie, <span class="mono">sid</span> (or <span class="mono">__Host-sid</span> on HTTPS), which keeps you signed in. It is strictly necessary, HttpOnly, and expires after 14 days. We also store a few preferences in your browser's local storage (theme, currency, saved favourites and recently viewed services). These never leave your device.</p>
+      <p>We use one cookie, <span class="mono">sid</span> (or <span class="mono">__Host-sid</span> on HTTPS), which keeps you signed in. It is strictly necessary, HttpOnly, and expires after 14 days. We also store a few preferences in your browser's local storage (theme and currency). These never leave your device.</p>
       <p>We do not use advertising cookies, analytics trackers or fingerprinting.</p>
       <h2>4. Third parties</h2>
       <ul><li><b>Stripe</b> processes card payments when online payment is turned on. It receives the amount, order description and your email address, and is subject to its own privacy policy.</li>
@@ -58,9 +58,9 @@ const PAGES = {
       <h2>Emails we send</h2>
       <p>We send emails only to confirm your address, reset your password if you ask, and (if you leave this on) to tell you about new messages when you're offline. Message emails never contain the message itself and can be switched off in Account settings.</p>
       <h2>5. How we use your data</h2>
-      <p>To create and secure your account, show your artist page and listings, process orders and payments, deliver messages, respond to your questions, keep the site safe, and meet legal obligations. We do not sell your personal data or use it for advertising.</p>
+      <p>To create and secure your account, show your artist page and showcase, process orders and payments, deliver messages, respond to your questions, keep the site safe, and meet legal obligations. We do not sell your personal data or use it for advertising.</p>
       <h2>6. How long we keep it</h2>
-      <p>We keep your data while your account is active. When you delete your account, your profile, listings, uploaded images and messages are removed immediately. Records of paid orders may be kept as long as the law requires for accounting. Routine backups may retain a copy for up to 14 days before being overwritten.</p>
+      <p>We keep your data while your account is active. When you delete your account, your page, uploaded images and messages are removed immediately. Records of paid orders may be kept as long as the law requires for accounting. Routine backups may retain a copy for up to 14 days before being overwritten.</p>
       <h2>7. Your rights</h2>
       <p>You can download a copy of your data or delete your account yourself from <b>Account settings</b> (open your account menu after signing in). You can also update your details there. Depending on where you live you may have further rights, such as to object to or restrict processing, or to complain to your local data protection authority. To exercise any right, ${contactLine()}.</p>
       <h2>8. Security</h2>
@@ -76,13 +76,13 @@ const PAGES = {
       <h2>3. What Tweak’d is, and isn't</h2>
       <p>Tweak’d is a platform where customers ask artists to customise their things. <b>The artist, not Tweak’d, makes and delivers each product.</b> Artists are independent, not our employees, agents or contractors. We do not verify the identity or qualifications of users or guarantee the quality or delivery of any product. ${S.cfg?.payments ? 'When a buyer pays online, Stripe takes the payment and Tweak’d holds it until the buyer approves the delivery, then pays the artist, minus a platform fee shown before checkout. If an order is not delivered, tell us promptly and we will decide in good faith whether to refund it.' : 'Online payment is not switched on, so buyers and artists arrange payment directly between themselves, at their own risk.'}</p>
       <h2>4. Artists</h2>
-      <ul><li>Provide accurate information about yourself and your listings.</li><li>Only upload and sell artwork you created or have the right to use. Do not use other people's characters, logos, brands or photographs without permission.</li><li>You keep the copyright in your art. By accepting an order you allow the buyer to receive and use the finished product, and you allow us to show your work on the site.</li><li>Deliver what you agree with buyers, and handle your own taxes, licences and legal obligations.</li></ul>
+      <ul><li>Provide accurate information about yourself and your work.</li><li>Only upload and sell artwork you created or have the right to use. Do not use other people's characters, logos, brands or photographs without permission.</li><li>You keep the copyright in your art. By accepting an order you allow the buyer to receive and use the finished product, and you allow us to show your work on the site.</li><li>Deliver what you agree with buyers, and handle your own taxes, licences and legal obligations.</li></ul>
       <h2>5. Buyers</h2>
       <ul><li>Look at the artist's portfolio and ask questions before agreeing to anything.</li><li>Custom products are made to order, so check what's included and the delivery time first.</li><li>Be clear about what you need and pay what you agree.</li><li>Be careful about paying in full before work begins, and never share card or banking details inside messages.</li></ul>
-      <h2>6. Orders and reviews</h2><p>Requests, acceptance, delivery and approval on Tweak’d are a record of what the buyer and seller agreed between themselves. Reviews must be honest and based on a real order you completed. We may remove reviews that are fake, abusive, or off-topic. ${S.cfg?.payments ? 'Payment disputes are handled as described in section 3.' : 'Tweak’d does not hold or release payments, and does not decide disputes between buyers and artists.'}</p>
+      <h2>6. Orders and reviews</h2><p>Requests, acceptance, delivery and approval on Tweak’d are a record of what the customer and artist agreed between themselves. Reviews must be honest and based on a real order you completed. We may remove reviews that are fake, abusive, or off-topic. ${S.cfg?.payments ? 'Payment disputes are handled as described in section 3.' : 'Tweak’d does not hold or release payments, and does not decide disputes between buyers and artists.'}</p>
       <h2>7. Not allowed</h2>
-      <ul><li>Illegal, fraudulent, deceptive or infringing content or services.</li><li>Harassment, hate, threats, adult content involving minors, or malware.</li><li>Spam, scraping, or attempts to disrupt, probe or bypass the security of the site.</li><li>Impersonating others, or creating accounts to evade a suspension.</li></ul>
-      <h2>8. Your content</h2><p>You keep ownership of what you publish. You give us a non-exclusive, worldwide licence to host, display and distribute it on and in connection with Tweak’d so the service can work (for example, showing your artist page and portfolio to visitors).</p>
+      <ul><li>Illegal, fraudulent, deceptive or infringing content or work.</li><li>Harassment, hate, threats, adult content involving minors, or malware.</li><li>Spam, scraping, or attempts to disrupt, probe or bypass the security of the site.</li><li>Impersonating others, or creating accounts to evade a suspension.</li></ul>
+      <h2>8. Your content</h2><p>You keep ownership of what you publish. You give us a non-exclusive, worldwide licence to host, display and distribute it on and in connection with Tweak’d so the site can work (for example, showing your artist page and portfolio to visitors).</p>
       <h2>9. Reporting and enforcement</h2><p>If you see something that breaks these terms, <a class="ulink" href="/contact" data-nav>tell us</a>. We may remove content, suspend or close accounts at our discretion, with or without notice, to protect the community or comply with the law.</p>
       <h2>10. Ending your account</h2><p>You can delete your account at any time from Account settings. Sections that by their nature should survive (such as disclaimers and limits of liability) will continue to apply.</p>
       <h2>11. Disclaimers</h2><p>Tweak’d is provided "as is" and "as available". To the fullest extent permitted by law we disclaim all warranties, including fitness for a particular purpose, and we do not warrant that the site will be uninterrupted or error-free.</p>
@@ -120,7 +120,7 @@ const PAGES = {
     if (token) setTimeout(async () => {
       const out = $('#verifyOut'); if (!out) return; const j = await (VERIFY_RUNS[token] ||= call('POST', '/api/email/verify', { token })); // run once per token, even if the page re-renders
       out.innerHTML = j.error ? `<div class="sent-card"><span class="ti err">${ic('x')}</span><h3>Couldn't verify</h3><p>${esc(j.error)}</p><a class="btn btn-ink" href="/" data-nav>Go to Tweak’d</a></div>`
-        : `<div class="sent-card"><span class="ti">${ic('check')}</span><h3>Email verified</h3><p>Thanks! You can now publish listings and send messages.</p><a class="btn btn-ink" href="/" data-nav>Continue to Tweak’d</a></div>`;
+        : `<div class="sent-card"><span class="ti">${ic('check')}</span><h3>Email verified</h3><p>Thanks! You can now place orders and send messages.</p><a class="btn btn-ink" href="/" data-nav>Continue to Tweak’d</a></div>`;
       if (!j.error) loadMe();
     }, 50);
     return pageShell('Account', 'Verifying your email…', token ? '<div id="verifyOut"><div class="sent-card"><span class="spinner"></span><p>One moment…</p></div></div>' : `<p class="big">This page needs a verification link from your email.</p>`);

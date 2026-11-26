@@ -2,7 +2,7 @@
 
 # Tweak’d
 
-A marketplace where artists customise everyday products (bags, mice, mugs, hoodies, prints) and anyone can order them. Artists get portfolio pages and can list their campus; buyers pick the product, colour, size and artwork.
+A marketplace where artists customise everyday products (bags, mice, mugs, hoodies, prints) and anyone can order them. Artists get portfolio pages and show their location; buyers pick the product, colour, size and artwork.
 **Zero runtime dependencies** — just Node 18+. Security details: [SECURITY.md](SECURITY.md).
 
 ```
@@ -42,11 +42,11 @@ Nothing on the site is demo content. Everything comes from real activity:
 | --- | --- |
 | Accounts | Sign up / log in, scrypt hashing, HttpOnly session cookies, lockout after repeated failures |
 | Email | Verification, password reset and "new message" emails (via Resend; dev outbox when no key) |
-| Artist pages | `/@handle` — address, portfolio, campus, country, banner colour, portrait, bio, skills, website |
+| Artist pages | `/@handle` — address, showcase, city, country, banner colour, portrait, bio, skills, website |
 | Portfolio | Image uploads (JPG/PNG/WebP, resized in the browser, type checked by file signature, stored in `DATA_DIR/uploads`) |
 | Products | 12 blank products (tote, backpack, laptop sleeve, mouse, desk mat, phone case, t-shirt, hoodie, mug, bottle, notebook, framed print) drawn as live SVG mockups |
 | Customiser | Buyer picks colour, size, quantity and one of the artist's artworks and sees it on the product before sending the request |
-| Campuses | Artists can list a college; buyers can filter by campus |
+| Locations | Artists give a city and country; customers can filter by location |
 | Listings | Product, cover artwork, price, delivery time, description and "what's included" — live for everyone instantly |
 | Messaging | Two-way conversations, service requests, unread counts — delivered in real time |
 | Live stats & presence | Members / sellers / services / people online and the "Online now" dot, pushed over Server-Sent Events |

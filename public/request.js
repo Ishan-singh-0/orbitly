@@ -2,13 +2,13 @@
 
 let R = null;
 const REQ_TABS = ['Your item', 'Inspiration', 'Details'];
-const freshRequest = () => ({ step: 0, product: '', color: '', item: '', handle: '', reference: '', brief: '', links: '', budget: '', deadline: '', pics: [], artists: [], works: [] });
+const freshRequest = () => ({ step: 0, shown: -1, product: '', color: '', item: '', handle: '', reference: '', brief: '', links: '', budget: '', deadline: '', pics: [], artists: [], works: [] });
 
 async function openRequest(preset = {}) {
   if (!S.user) { pending = () => openRequest(preset); return openAuth('login', 'Log in to send your custom order. It only takes a moment.'); }
   if (preset.handle && S.user.seller?.handle === preset.handle) return toast("That's your own page");
   if (!R) R = freshRequest();
-  Object.assign(R, Object.fromEntries(Object.entries(preset).filter(([, v]) => v)), { step: 0 });
+  Object.assign(R, Object.fromEntries(Object.entries(preset).filter(([, v]) => v)), { step: 0, shown: -1 });
   openDyn('<div class="pad req" id="reqBox"><div class="empty-s">Loading…</div></div>', 'wide');
   const j = await call('GET', '/api/sellers'); R.artists = (j.sellers || []).filter(a => a.handle !== S.user.seller?.handle);
   if (!R.artists.some(a => a.handle === R.handle)) { R.handle = R.artists.length === 1 ? R.artists[0].handle : ''; }
@@ -26,7 +26,7 @@ async function sellerArt(handle) {
 
 function paintRequest() {
   const box = $('#reqBox'); if (!box) return;
-  const p = prodById(R.product);
+  const p = prodById(R.product), moved = R.shown !== R.step, scroller = box.closest('.modal'), top = moved ? 0 : scroller.scrollTop; R.shown = R.step;
   const tabs = `<div class="req-tabs" role="tablist" style="--at:${R.step}"><span class="req-ink"></span>${REQ_TABS.map((t, i) => `<button type="button" role="tab" aria-selected="${i === R.step}" class="${i === R.step ? 'on' : ''}" data-step="${i}"><i>${i + 1}</i>${t}</button>`).join('')}</div>`;
   let body = '';
   if (R.step === 0) body = `
@@ -34,7 +34,7 @@ function paintRequest() {
     <div class="req-prods">${[...PRODUCTS.map(x => [x.id, x.name, mockup(x.id, x.colors[0][1], '')]), ['other', 'Something else', '<span class="req-plus">+</span>']].map(([id, name, art], i) => `<button type="button" class="req-prod ${R.product === id ? 'on' : ''}" data-rp="${id}" style="--i:${i}">${art}<small>${name}</small></button>`).join('')}</div>
     <label class="field"><span>Describe your item</span><input name="item" maxlength="80" value="${esc(R.item)}" placeholder="e.g. black Logitech mouse, plain canvas tote, white sneakers"></label>
     ${p ? `<div class="field"><span>Colour you want it to be <em class="opt">(optional)</em></span><div class="sw-row">${p.colors.map(c => `<button type="button" class="sw ${R.color === c[0] ? 'on' : ''}" data-rc="${c[0]}" style="--sw:${c[1]}" title="${c[0]}" aria-label="${c[0]}"></button>`).join('')}</div></div>` : `<label class="field"><span>Colour you want it to be <em class="opt">(optional)</em></span><input name="color" maxlength="30" value="${esc(R.color)}" placeholder="e.g. matte lilac"></label>`}
-    <label class="field"><span>Artist</span><select name="handle"><option value="">Choose an artist</option>${R.artists.map(a => `<option value="${esc(a.handle)}" ${a.handle === R.handle ? 'selected' : ''}>${esc(a.name)}${a.campus ? ' · ' + esc(a.campus) : ''}</option>`).join('')}</select></label>`;
+    <label class="field"><span>Artist</span><select name="handle"><option value="">Choose an artist</option>${R.artists.map(a => `<option value="${esc(a.handle)}" ${a.handle === R.handle ? 'selected' : ''}>${esc(a.name)}${a.place ? ' · ' + esc(a.place) : ''}</option>`).join('')}</select></label>`;
   if (R.step === 1) body = `
     <p class="req-q">Show the artist what you have in mind</p>
     <label class="drop" id="drop"><input type="file" id="inspFile" accept="image/png,image/jpeg,image/webp" multiple hidden><span class="drop-ic">${ic('upright')}</span><b>Drop pictures here, or click to choose</b><small>Up to 6 images: sketches, screenshots, a photo of your item. Only you and your artist can see them.</small></label>
@@ -50,8 +50,9 @@ function paintRequest() {
     <div class="req-sum"><span class="req-sum-art">${p ? mockup(p.id, (p.colors.find(c => c[0] === R.color) || p.colors[0])[1], R.works.find(w => w.id === R.reference)?.url || '') : '<span class="req-plus">+</span>'}</span><div><b>${esc(R.item || 'Your item')}</b><small>${esc([p?.name || (R.product ? 'Custom item' : 'Nothing chosen yet'), R.color, artist ? 'for ' + artist.name : 'no artist chosen', R.pics.length ? plural(R.pics.length, 'picture') : ''].filter(Boolean).join(' · '))}</small></div></div>
     <p class="req-note">The artist replies with a price and delivery time. Nothing starts, and nothing is charged, until you accept.</p>`;
   }
-  box.innerHTML = `<h2>Customise your thing</h2>${tabs}<form id="orderForm" novalidate><div class="req-body">${body}</div><div id="reqErr"></div>
+  box.innerHTML = `<h2>Customise your thing</h2>${tabs}<form id="orderForm" novalidate><div class="req-body${moved ? ' slide' : ''}">${body}</div><div id="reqErr"></div>
     <div class="req-nav">${R.step ? '<button type="button" class="btn btn-line" data-go="-1">Back</button>' : '<span></span>'}${R.step < 2 ? '<button type="button" class="btn btn-ink" data-go="1">Next</button>' : '<button class="btn btn-pop btn-lg" id="orderGo">Send to artist</button>'}</div></form>`;
+  scroller.scrollTop = top;
 }
 const reqError = msg => { $('#reqErr').innerHTML = msg ? `<div class="form-err" role="alert">${esc(msg)}</div>` : ''; };
 // what is still missing, and which tab fixes it

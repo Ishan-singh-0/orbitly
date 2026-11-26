@@ -120,8 +120,8 @@
 /* ---- motion (classes added by fx.js) ---- */
 .fx .pop-in { opacity: 0; translate: 0 46px; scale: .92; transition: opacity .7s calc(var(--i, 0) * 70ms) var(--ease), translate .8s calc(var(--i, 0) * 70ms) cubic-bezier(.2, 1.3, .4, 1), scale .8s calc(var(--i, 0) * 70ms) cubic-bezier(.2, 1.3, .4, 1), transform .25s ease-out, box-shadow .3s; }
 .fx .pop-in.seen { opacity: 1; translate: 0 0; scale: 1; }
-.fx .split .wd { display: inline-block; opacity: 0; transform: translateY(.7em) rotate(8deg); transition: opacity .5s calc(var(--w) * 90ms), transform .7s calc(var(--w) * 90ms) cubic-bezier(.2, 1.5, .4, 1); }
-.fx .split.seen .wd { opacity: 1; transform: none; }
+.fx .by-word .wd { display: inline-block; opacity: 0; transform: translateY(.7em) rotate(8deg); transition: opacity .5s calc(var(--w) * 90ms), transform .7s calc(var(--w) * 90ms) cubic-bezier(.2, 1.5, .4, 1); }
+.fx .by-word.seen .wd { opacity: 1; transform: none; }
 .hero { position: relative; isolation: isolate; }
 .blobs { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .blobs i { position: absolute; width: calc(60px + var(--n) * 34px); aspect-ratio: 1; background: var(--c); opacity: .2; border-radius: 42% 58% 63% 37% / 44% 45% 55% 56%; left: calc(var(--n) * 23% - 3%); top: calc(12% + var(--n) * 37px); translate: 0 calc(var(--sy, 0) * (var(--n) - 2) * .12px); animation: morph calc(9s + var(--n) * 2s) ease-in-out infinite alternate; }
@@ -146,3 +146,42 @@
   .bot-face, .bot-face i, .bot-fab, .blobs i, .drop-ic, .req-body, .req-prod, .demo-tabs button.on::after, .overlay.open .modal, .marquee.alt .marquee-in { animation: none !important; }
 }
 #homeView { overflow-x: clip; }
+
+/* ---------- polish pass ---------- */
+.trail.idle { opacity: 0 !important; }
+.req-body { animation: none; } .req-body.slide { animation: tab-in .4s var(--ease) both; }
+.req-prod { animation: none; } .req-body.slide .req-prod { animation: tile-in .4s calc(var(--i) * 25ms) var(--ease) backwards; }
+body:has(.overlay.open) :is(.bot, .totop) { opacity: 0; pointer-events: none; }
+.bot, .totop { transition: opacity .25s; }
+.req-nav { position: sticky; bottom: -1px; background: var(--card); padding: 12px 0 4px; z-index: 2; }
+#places .place-row { justify-content: flex-start; }
+.place-row .place { border-radius: 99px; padding: 12px 22px; }
+.seller-row { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.seller-row .empty-card { grid-column: 1 / -1; }
+.s-card h3 { margin-top: 10px; }
+.facts li { gap: 16px; } .facts li b { text-align: right; overflow-wrap: anywhere; }
+.pf-id h1, .ord-h b, .adm-a-head b, .shot figcaption b { overflow-wrap: anywhere; }
+.ord { border-radius: 18px; } .ord-act { flex-wrap: wrap; }
+.modal { scrollbar-width: thin; }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--pop); box-shadow: 0 0 0 4px var(--accent-soft); outline: 0; }
+.verify-bar { background: var(--accent-soft); }
+.empty h3 { margin-bottom: 6px; }
+:root[data-theme="dark"] .todo.wait { background: #3A2C08; color: #FFD97A; }
+:root[data-theme="dark"] .todo.bad { background: #3A1418; color: #FFA7AE; }
+:root[data-theme="dark"] .st-quoted { background: #241B52; color: #C3B5FF; }
+:root[data-theme="dark"] .adm-pill.ok, :root[data-theme="dark"] .adm-pill.paid { background: #12301F; color: #7DE0A6; }
+:root[data-theme="dark"] .adm-pill.bad, :root[data-theme="dark"] .adm-pill.refunded { background: #3A1418; color: #FFA7AE; }
+:root[data-theme="dark"] .adm-pill.due { background: #3A2C08; color: #FFD97A; }
+:root[data-theme="dark"] .demo-stage { background: radial-gradient(120% 90% at 30% 15%, color-mix(in srgb, var(--stage, #888) 42%, #1b1b22), color-mix(in srgb, var(--stage, #888) 22%, #0c0c0f)); }
+:root[data-theme="dark"] .demo-stage::before { opacity: .16; }
+@media (max-width: 700px) {
+  .adm-artists { grid-template-columns: 1fr; }
+  .req h2 { font-size: 1.9rem; padding-right: 36px; }
+  .req-tabs i { display: none; } .req-tabs button { font-size: .82rem; white-space: nowrap; }
+  .req-prods { grid-template-columns: repeat(3, 1fr); }
+  .shots { columns: 2 150px; column-gap: 10px; } .shot { margin-bottom: 10px; border-radius: 16px; }
+  .shot figcaption { padding: 10px; } .shot figcaption .btn { padding-inline: 12px; font-size: .74rem; }
+  .marquee.alt { transform: none; }
+}
+.pf-nav { background: var(--bg); }
+.pf-sec { scroll-margin-top: 130px; }
