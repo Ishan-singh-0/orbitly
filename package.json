@@ -1,8 +1,8 @@
 {
-  "name": "orbitly",
+  "name": "tweakd",
   "version": "1.0.0",
   "private": true,
-  "description": "Orbitly — a marketplace where artists customise everyday products and anyone can order them.",
+  "description": "Tweak’d — a marketplace where artists customise everyday products and anyone can order them.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

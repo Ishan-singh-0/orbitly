@@ -10,7 +10,7 @@ const MFA = { setup: null, codes: [] };               // two-factor setup state
 
 const dyn = document.createElement('div');
 dyn.className = 'overlay'; dyn.id = 'dynOv';
-dyn.innerHTML = '<div class="modal" id="dyn" role="dialog" aria-modal="true" aria-label="Orbitly"></div>';
+dyn.innerHTML = '<div class="modal" id="dyn" role="dialog" aria-modal="true" aria-label="Tweak’d"></div>';
 document.body.appendChild(dyn);
 
 function openDyn(html, cls) {
@@ -93,7 +93,7 @@ function paintAuth(note = '') {
   errBox('');
 }
 function showMfaStep(token) {
-  $('#dyn .pad').innerHTML = `<h2>Two-step verification</h2><p class="sub">Open your authenticator app and enter the 6-digit code for Orbitly. Lost your phone? Use one of your recovery codes instead.</p><div id="aErr"></div>
+  $('#dyn .pad').innerHTML = `<h2>Two-step verification</h2><p class="sub">Open your authenticator app and enter the 6-digit code for Tweak’d. Lost your phone? Use one of your recovery codes instead.</p><div id="aErr"></div>
     <form id="mfaForm" data-token="${esc(token)}" novalidate><label class="field"><span>Code</span><input name="code" inputmode="text" autocomplete="one-time-code" maxlength="12" autocapitalize="off" spellcheck="false" placeholder="123456"></label><button class="btn btn-ink btn-lg btn-block" id="mGo">Verify and log in</button></form>`;
   $('#mfaForm input').focus();
 }
@@ -235,7 +235,7 @@ function paintTab(tab) {
       <div class="row2"><label class="field"><span>City</span><input name="location" maxlength="40" value="${esc(s.location)}" placeholder="City"></label><label class="field"><span>Languages</span><input name="languages" maxlength="80" value="${esc((s.languages || []).join(', '))}" placeholder="English, Hindi"></label></div>
       <label class="field"><span>Skills (comma separated, up to 8)</span><input name="skills" maxlength="200" value="${esc((s.skills || []).join(', '))}" placeholder="Illustration, Lettering, Screen printing"></label>
       <label class="field"><span>Website</span><input name="website" maxlength="100" value="${esc(s.website)}" placeholder="https://yourportfolio.com"></label>
-      <label class="field"><span>How should we pay you? <em class="opt">(private)</em></span><input name="payout" maxlength="200" value="${esc(u.payout || '')}" placeholder="UPI ID, PayPal email or bank details note"><small>Only the Orbitly team can see this. It's used when an order you completed has been paid for online.</small></label>
+      <label class="field"><span>How should we pay you? <em class="opt">(private)</em></span><input name="payout" maxlength="200" value="${esc(u.payout || '')}" placeholder="UPI ID, PayPal email or bank details note"><small>Only the Tweak’d team can see this. It's used when an order you completed has been paid for online.</small></label>
       <label class="field"><span>About you</span><textarea name="bio" rows="6" maxlength="800">${esc(s.bio)}</textarea><small id="bioN">${s.bio.length} / 800</small></label>
       <div class="field"><span>Banner colour</span><div class="swatches">${PALS.map((p, i) => `<label title="${ACCENT_NAMES[i]}"><input type="radio" name="accent" value="${i}" ${i === s.accent ? 'checked' : ''}><i style="background:${p[1]}"></i></label>`).join('')}</div></div>
       <div class="field"><span>Portrait</span><div class="av-grid">${Array.from({ length: 12 }, (_, i) => `<label><input type="radio" name="avatar" value="${i}" ${i === s.avatar ? 'checked' : ''}>${avE(AV_OFFSET + i)}</label>`).join('')}</div></div>
@@ -445,7 +445,7 @@ dyn.addEventListener('click', async e => {
   if (m === 'done') { MFA.codes = []; return renderMfaBox('on'); }
   if (m === 'copy') { navigator.clipboard?.writeText(MFA.codes.join('\n')).catch(() => {}); return toast('Recovery codes copied'); }
   if (m === 'download') {
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`Orbitly recovery codes\nEach code works once.\n\n${MFA.codes.join('\n')}\n`], { type: 'text/plain' })); a.download = 'orbitly-recovery-codes.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); return;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([`Tweak’d recovery codes\nEach code works once.\n\n${MFA.codes.join('\n')}\n`], { type: 'text/plain' })); a.download = 'tweakd-recovery-codes.txt'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); return;
   }
   if (m === 'off' || m === 'regen') {
     $('#mfaForm2').innerHTML = `<form id="${m === 'off' ? 'mfaOffForm' : 'mfaRegenForm'}" novalidate><div class="ferr"></div><label class="field"><span>Password</span><input name="password" type="password" autocomplete="current-password" maxlength="100"></label><label class="field"><span>Code from your app (or a recovery code)</span><input name="code" autocomplete="one-time-code" maxlength="12"></label><button class="btn ${m === 'off' ? 'btn-danger' : 'btn-ink'} btn-sm">${m === 'off' ? 'Turn off two-step verification' : 'Make new codes'}</button></form>`;

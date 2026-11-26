@@ -1,6 +1,6 @@
 # Security
 
-No website can honestly be called "unhackable", and this one is no exception. What follows is exactly what Orbitly
+No website can honestly be called "unhackable", and this one is no exception. What follows is exactly what Tweak’d
 does to protect itself and its users, what **you** must do on the hosting side, and what is still open.
 Every protection listed under "Built in" is covered by an automated attack test (182 checks) that was run against the app.
 
@@ -60,7 +60,7 @@ These are outside the application and matter just as much:
 4. **Use a firewall** — expose only 80/443. Don't expose the app's port or SSH to the whole internet; use key-based SSH.
 5. **Protect secrets.** Keep `RESEND_API_KEY` and `ADMIN_TOKEN` only in your host's secret store. Generate `ADMIN_TOKEN` with 32+ random bytes. Never commit `.env`.
 6. **Back up `DATA_DIR` off the server** (the built-in daily copies live on the same disk), and encrypt the disk if your host supports it.
-7. **Run the container hardened:** `docker run --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -v orbitly-data:/data …`
+7. **Run the container hardened:** `docker run --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges -v tweakd-data:/data …`
 8. **Put a CDN/WAF in front** (e.g. Cloudflare) for volumetric DDoS protection — an application can't absorb network-level floods.
 9. **Monitor.** Watch logs for `login_locked`, `admin_denied`, and 5xx spikes; set an uptime check on `/healthz`.
 10. **Review the legal pages** with a lawyer, and tell users if you ever have a breach (many jurisdictions require it).
@@ -74,7 +74,7 @@ These are outside the application and matter just as much:
 - **JSON-file storage** is simple and safe for early traffic but isn't a database: no row-level locking, one instance only. Move to PostgreSQL/SQLite before heavy traffic or multiple servers.
 - **Single-process rate limits** live in memory and reset on restart.
 - **Inline `style="…"` attributes** remain allowed (`style-src-attr 'unsafe-inline'`) because the UI uses a few; `<style>` blocks and external stylesheets are locked to same-origin.
-- **Payments are off until you add Stripe keys.** When on, card data stays with Stripe (PCI SAQ A). Orbitly then holds customer money until you pay artists out, which is a regulated activity in some countries; read PAYMENTS.md and get advice before going live. Payout and refund actions are manual admin steps.
+- **Payments are off until you add Stripe keys.** When on, card data stays with Stripe (PCI SAQ A). Tweak’d then holds customer money until you pay artists out, which is a regulated activity in some countries; read PAYMENTS.md and get advice before going live. Payout and refund actions are manual admin steps.
 - **Uploaded images are not scanned** for copyright or inappropriate content. Use the report link and `tools/admin.js delete-user` / `delete-gig` to act on reports.
 
 ## Reporting a vulnerability

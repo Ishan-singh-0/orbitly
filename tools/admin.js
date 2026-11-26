@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Orbitly admin CLI — talks to the protected admin API (enabled only when ADMIN_TOKEN is set on the server, 32+ chars).
+// Tweak’d admin CLI — talks to the protected admin API (enabled only when ADMIN_TOKEN is set on the server, 32+ chars).
 //   ADMIN_TOKEN=... ADMIN_URL=https://your-domain.com node tools/admin.js <command>
 // Commands:
 //   overview                  counts + newest users, listings and contact/report messages

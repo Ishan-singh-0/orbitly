@@ -1,4 +1,4 @@
-// Orbitly front end: home page, live data, router, seller pages, service modal.
+// Tweak’d front end: home page, live data, router, seller pages, service modal.
 // Loaded after art.js and pages.js; auth.js (accounts, messaging, orders) loads after this file.
 
 const $ = (s, root = document) => root.querySelector(s);
@@ -20,9 +20,9 @@ const CATS = PRODUCT_GROUPS;
 const CAT_SHORT = Object.fromEntries(PRODUCT_GROUPS.map(g => [g.id, g.name]));
 const prodById = id => PRODUCTS.find(p => p.id === id);
 const FAQ = [
-  ['What is Orbitly?', 'A marketplace where artists customise everyday products, like a bag, a mouse or a hoodie, and anyone can order them. Every artist has a public portfolio page, and many list their campus so you can find people near you.'],
+  ['What is Tweak’d?', 'A marketplace where artists customise everyday products, like a bag, a mouse or a hoodie, and anyone can order them. Every artist has a public portfolio page, and many list their campus so you can find people near you.'],
   ['How do I order something?', "Open a listing, choose the colour, size and a piece from the artist's portfolio, and send the request. The artist accepts or declines, and you agree the details in Messages. Orders move through requested, in progress, delivered and completed, and you can leave a review once it is done."],
-  ['How does payment work?', () => S.cfg?.payments ? 'Once the artist accepts your order, you pay through a secure Stripe checkout. Orbitly never sees your card details. We hold the payment until you approve the delivery, then pay the artist.' : "Online payment isn't switched on for this site yet. Until it is, you and the artist arrange payment directly. Don't pay in full upfront to someone you don't know, and never share card or bank details in messages."],
+  ['How does payment work?', () => S.cfg?.payments ? 'Once the artist accepts your order, you pay through a secure Stripe checkout. Tweak’d never sees your card details. We hold the payment until you approve the delivery, then pay the artist.' : "Online payment isn't switched on for this site yet. Until it is, you and the artist arrange payment directly. Don't pay in full upfront to someone you don't know, and never share card or bank details in messages."],
   ['Who makes the product?', 'The artist. Each listing says what is included and how long it takes. Ask about materials, printing and shipping in messages before you order.'],
   ['Are artists verified?', "Not yet. Artists set up their own pages, so look at their portfolio and reviews and ask questions first. If something looks wrong, report it from their page or the contact form."],
   ['How do I start selling?', 'Create an account, verify your email, choose "Sell your art", pick your page address, upload some work and list the products you customise. It shows up on the marketplace right away.'],
@@ -30,7 +30,7 @@ const FAQ = [
   ['Can I export or delete my data?', 'Yes. Open Account settings from your account menu to download your data or delete your account.']
 ];
 const SYM = { USD: '$', INR: '₹', EUR: '€', GBP: '£' };
-const HOME_TITLE = 'Orbitly — Custom products by artists around the world';
+const HOME_TITLE = 'Tweak’d — Custom products by artists around the world';
 const HOME_DESC = 'Order bags, mice, mugs, hoodies and more customised by artists from campuses and countries around the world. Artists can open a free portfolio page and start selling.';
 
 // ---------------------------------------------------------------- state
@@ -130,7 +130,7 @@ function applyState(st) {
   S.stats = st.stats; S.campuses = st.campuses || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
   presence(); renderStats(); renderHeroMeta(); renderProof(); renderCampus();
   if (faqPay !== !!S.cfg?.payments) { faqPay = !!S.cfg?.payments; renderFaq(); }
-  $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Orbitly'}`;
+  $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Tweak’d'}`;
   $('#cur').title = st.rates?.updated ? 'Live exchange rates, updated ' + new Date(st.rates.updated).toLocaleString() : 'Approximate exchange rates';
   if (st.v !== S.v) {
     const firstLoad = S.v === 0; S.v = st.v;
@@ -203,7 +203,7 @@ document.addEventListener('click', e => {
 function renderStats() {
   const s = S.stats, box = $('#liveStrip');
   box.innerHTML = s.members === 0 && s.services === 0
-    ? `<p class="strip-empty">Orbitly has just opened. <button class="linklike" data-act="sell">Open the first artist page</button></p>`
+    ? `<p class="strip-empty">Tweak’d has just opened. <button class="linklike" data-act="sell">Open the first artist page</button></p>`
     : `<ul class="strip"><li><b>${s.members.toLocaleString()}</b> members</li><li><b>${s.sellers.toLocaleString()}</b> artists</li><li><b>${s.services.toLocaleString()}</b> listings</li><li><b>${s.online.toLocaleString()}</b> online now</li></ul>`;
 }
 function renderHeroMeta() {
@@ -224,7 +224,7 @@ function paintDemo() {
   const stage = $('#demoStage'); stage.style.setProperty('--stage', col[1]);
   stage.querySelector('.mock')?.remove(); stage.insertAdjacentHTML('beforeend', mockup(p.id, col[1], pool.length ? pool[demo.seed % pool.length] : sampleArt(demo.seed)));
   $('#demoName').textContent = p.name + ' in ' + col[0].toLowerCase();
-  $('#demoNote').textContent = pool.length ? "Artwork by artists on Orbitly" : 'Sample artwork. Try the colours and products.';
+  $('#demoNote').textContent = pool.length ? "Artwork by artists on Tweak’d" : 'Sample artwork. Try the colours and products.';
   $('#demoSw').innerHTML = p.colors.map((c, i) => `<button type="button" class="sw ${i === demo.c % p.colors.length ? 'on' : ''}" data-dc="${i}" style="--sw:${c[1]}" aria-label="${c[0]}" title="${c[0]}"></button>`).join('');
   $$('#demoTabs button').forEach(b => b.classList.toggle('on', b.dataset.dp === demo.p));
 }
@@ -319,7 +319,7 @@ function clearFilter(kind) {
   S.shown = 8; renderGigs();
 }
 function emptyMessage() {
-  if (!G.length) return `<span class="empty-art">${mockup('mug', '#F4F3EF', sampleArt(7), { bg: 'transparent' })}</span><h3>The first listings are yet to arrive</h3><p>Orbitly just opened. Artists publish custom products from their dashboard, and each one shows up here for everyone the moment it is live.</p><div class="btn-row"><button class="btn btn-ink btn-lg" data-act="sell">Publish the first listing</button><a class="btn btn-line btn-lg" href="/#how" data-scroll>See how it works</a></div>`;
+  if (!G.length) return `<span class="empty-art">${mockup('mug', '#F4F3EF', sampleArt(7), { bg: 'transparent' })}</span><h3>The first listings are yet to arrive</h3><p>Tweak’d just opened. Artists publish custom products from their dashboard, and each one shows up here for everyone the moment it is live.</p><div class="btn-row"><button class="btn btn-ink btn-lg" data-act="sell">Publish the first listing</button><a class="btn btn-line btn-lg" href="/#how" data-scroll>See how it works</a></div>`;
   const [title, text, btn] = S.onlyFav ? ['No favorites yet', 'Tap the heart on any listing to save it here.', 'Browse everything']
     : S.q ? [`No results for “${esc(S.q)}”`, 'Check the spelling, try a broader term, or raise your budget.', 'Reset filters'] : ['Nothing here yet', 'Try a different category or raise your budget.', 'Reset filters'];
   return `<h3>${title}</h3><p>${text}</p><button class="btn btn-ink" id="resetF">${btn}</button>`;
@@ -411,7 +411,7 @@ function route(keepScroll) {
   if (path === '/admin') return showAdmin();
   const name = path.slice(1);
   if (name && Object.hasOwn(PAGES, name)) { setView('page'); setMeta(...PAGE_META[name]); pageV.innerHTML = PAGES[name](); if (!keepScroll) scrollTo(0, 0); return; }
-  if (path !== '/') { setView('page'); setMeta('Page not found — Orbitly', 'This page does not exist.'); pageV.innerHTML = notFoundHTML(path); return; }
+  if (path !== '/') { setView('page'); setMeta('Page not found — Tweak’d', 'This page does not exist.'); pageV.innerHTML = notFoundHTML(path); return; }
   showHome();
 }
 addEventListener('popstate', () => { route(true); if (location.hash) setTimeout(() => $(location.hash)?.scrollIntoView(), 30); });
@@ -425,9 +425,9 @@ async function showProfile(handle, keepScroll) {
   if (!keepScroll) prof.innerHTML = '<div class="pf-banner"></div><div class="container"><div class="pf-head"><span class="sk sk-av"></span><div class="pf-id"><span class="sk sk-l1"></span><span class="sk sk-l2"></span><span class="sk sk-l3"></span></div></div></div>';
   const j = await call('GET', '/api/sellers/' + encodeURIComponent(handle)); await ready;
   if (prof.hidden) return; // the visitor navigated away while this loaded
-  if (j.error) { setMeta('Artist not found — Orbitly', 'This artist page does not exist.'); prof.innerHTML = notFoundHTML('/@' + handle); return; }
+  if (j.error) { setMeta('Artist not found — Tweak’d', 'This artist page does not exist.'); prof.innerHTML = notFoundHTML('/@' + handle); return; }
   const p = { ...j.seller, avatar: AV_OFFSET + j.seller.avatar };
-  setMeta(`${p.name} — ${p.headline} | Orbitly`, `${p.name}: ${p.headline}. ${String(p.bio).replace(/\s+/g, ' ').slice(0, 120)}…`);
+  setMeta(`${p.name} — ${p.headline} | Tweak’d`, `${p.name}: ${p.headline}. ${String(p.bio).replace(/\s+/g, ' ').slice(0, 120)}…`);
   prof.innerHTML = profileHTML(p, j.gigs.map(mapGig), j.reviews || [], j.art || []); spy();
 }
 function spy() {
@@ -511,7 +511,7 @@ function openGig(id) {
       : `<form id="reqForm" data-gig="${g.id}" data-handle="${esc(g.handle)}" novalidate>${custom}<label class="field"><span>Notes for the artist <em class="opt">(optional)</em></span><textarea name="text" rows="4" maxlength="2000" placeholder="Describe what you want, any text or names to include, and your deadline."></textarea></label><div id="reqErr"></div><button class="btn btn-ink btn-lg btn-block" id="reqGo">Send request</button></form>
         <div class="m-actions"><button class="btn btn-line btn-block" id="askBtn">${ic('chat')} Ask a question first</button></div>`}
     <div class="m-actions"><button class="btn btn-line btn-block" id="shareBtn">${ic('link')} Copy link to artist</button></div>
-    <div class="secure">${ic('shield')} ${S.cfg?.payments ? "You pay through Stripe's secure checkout after the artist accepts. Orbitly never sees your card." : "Online payment isn't switched on yet. Agree payment with the artist before any work begins."}</div></div>`;
+    <div class="secure">${ic('shield')} ${S.cfg?.payments ? "You pay through Stripe's secure checkout after the artist accepts. Tweak’d never sees your card." : "Online payment isn't switched on yet. Agree payment with the artist before any work begins."}</div></div>`;
   $('#qvOv').classList.add('open'); document.body.classList.add('lock');
   if (p && !own) sellerArt(g.handle).then(list => {
     const box = $('#czArt'); if (!box || current?.id !== g.id) return;

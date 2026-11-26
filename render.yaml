@@ -1,15 +1,15 @@
 # Render blueprint: create a web service from this repo. A persistent disk needs a paid plan,
-# and Orbitly stores its data as files, so without a disk everything resets on each deploy.
+# and Tweak’d stores its data as files, so without a disk everything resets on each deploy.
 services:
   - type: web
-    name: orbitly
+    name: tweakd
     runtime: node
     plan: starter
     buildCommand: echo "no build step"
     startCommand: node server.js
     healthCheckPath: /healthz
     disk:
-      name: orbitly-data
+      name: tweakd-data
       mountPath: /data
       sizeGB: 1
     envVars:
@@ -24,7 +24,7 @@ services:
       - key: DEMO_SEED
         value: "0"
       - key: SITE_URL
-        sync: false   # e.g. https://orbitly.onrender.com or your own domain
+        sync: false   # e.g. https://tweakd.onrender.com or your own domain
       - key: ADMIN_TOKEN
         generateValue: true
       - key: COMPANY_NAME

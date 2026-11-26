@@ -1,5 +1,5 @@
 'use strict';
-/* Orbitly server — zero runtime dependencies (Node 18+).
+/* Tweak’d server — zero runtime dependencies (Node 18+).
    Static files, JSON API, real-time stream (SSE), email, admin API, SEO, security hardening.
    Configuration is via environment variables — see .env.example and SECURITY.md */
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), zlib = require('zlib');
@@ -13,11 +13,11 @@ const SITE_URL = (process.env.SITE_URL || process.env.RENDER_EXTERNAL_URL || '')
 const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 const PROXY_HOPS = Math.max(1, +process.env.TRUST_PROXY_HOPS || 1);
 const FORCE_HTTPS = process.env.FORCE_HTTPS === '1';
-const COMPANY = process.env.COMPANY_NAME || 'Orbitly';
+const COMPANY = process.env.COMPANY_NAME || 'Tweak’d';
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || '';
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-const MAIL_FROM = process.env.MAIL_FROM || 'Orbitly <noreply@localhost>';
+const MAIL_FROM = process.env.MAIL_FROM || 'Tweak’d <noreply@localhost>';
 const MAIL_ON = !!RESEND_API_KEY || !PROD; // outside production, emails go to a local outbox so flows can be tested
 const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, 'data'));
 const PUB = path.join(__dirname, 'public');
@@ -37,19 +37,19 @@ const PAY_ON = !!STRIPE_KEY && !!STRIPE_HOOK;
 const FEE_PCT = Math.max(0, Math.min(40, +(process.env.PLATFORM_FEE_PERCENT || 10)));
 const UP_DIR = path.join(DATA_DIR, 'uploads');
 fs.mkdirSync(UP_DIR, { recursive: true, mode: 0o700 });
-const RESERVED = new Set(['admin', 'api', 'www', 'support', 'orbitly', 'help', 'about', 'login', 'signup', 'settings', 'static', 'root', 'team', 'contact', 'privacy', 'terms', 'security', 'staff', 'moderator', 'official', 'forgot', 'reset', 'verify', 'fonts', 'billing', 'payments', 'press', 'jobs', 'careers']);
+const RESERVED = new Set(['admin', 'api', 'www', 'support', 'tweakd', 'help', 'about', 'login', 'signup', 'settings', 'static', 'root', 'team', 'contact', 'privacy', 'terms', 'security', 'staff', 'moderator', 'official', 'forgot', 'reset', 'verify', 'fonts', 'billing', 'payments', 'press', 'jobs', 'careers']);
 const SESSION_MS = 14 * 24 * 3600e3, MAX_SESSIONS = 10;
 const KDF = { N: 32768, r: 8, p: 1 }, LEGACY_KDF = { N: 16384, r: 8, p: 1 };
-const COMMON_PW = new Set(['password', 'password1', 'password12', 'password123', '12345678', '123456789', '1234567890', 'qwertyui', 'qwerty123', 'qwertyuiop', '11111111', '00000000', 'iloveyou', 'iloveyou1', 'admin123', 'administrator', 'welcome1', 'welcome123', 'letmein1', 'letmein123', 'abc12345', 'abcd1234', 'passw0rd', 'p@ssw0rd', 'p@ssword', 'monkey123', 'dragon123', 'football1', 'baseball1', 'sunshine1', 'princess1', 'superman1', 'trustno1', 'changeme', 'changeme1', 'orbitly123', 'orbitly1', 'test1234', 'test12345', 'asdfghjk', 'zxcvbnm1', '1q2w3e4r', '1qaz2wsx', 'qazwsxedc', '987654321', '123123123', 'a1b2c3d4']);
+const COMMON_PW = new Set(['password', 'password1', 'password12', 'password123', '12345678', '123456789', '1234567890', 'qwertyui', 'qwerty123', 'qwertyuiop', '11111111', '00000000', 'iloveyou', 'iloveyou1', 'admin123', 'administrator', 'welcome1', 'welcome123', 'letmein1', 'letmein123', 'abc12345', 'abcd1234', 'passw0rd', 'p@ssw0rd', 'p@ssword', 'monkey123', 'dragon123', 'football1', 'baseball1', 'sunshine1', 'princess1', 'superman1', 'trustno1', 'changeme', 'changeme1', 'tweakd123', 'tweakd1', 'test1234', 'test12345', 'asdfghjk', 'zxcvbnm1', '1q2w3e4r', '1qaz2wsx', 'qazwsxedc', '987654321', '123123123', 'a1b2c3d4']);
 
 /* ------------------------------------------------------- demo accounts
    On in local development (set DEMO_SEED=0 to turn off) and in production only with DEMO_SEED=1. Creates a buyer, an artist (with a portfolio and four listings) and an admin so the whole site
    can be tried without signing up. They are labelled as demo accounts everywhere and are never created automatically. */
 const DEMO_ON = process.env.DEMO_SEED === '1' || (!PROD && process.env.DEMO_SEED !== '0'); // on by default in local development, never in production unless asked
 const DEMO_LIST = [
-  { role: 'Buyer', name: 'Demo Buyer', email: 'buyer@orbitly.demo', password: 'Buyer-Demo-2026', about: 'Browse, customise and order' },
-  { role: 'Artist', name: 'Demo Artist', email: 'artist@orbitly.demo', password: 'Artist-Demo-2026', about: 'Portfolio, listings and incoming orders' },
-  { role: 'Admin', name: 'Demo Admin', email: 'admin@orbitly.demo', password: 'Admin-Demo-2026', about: 'Management console at /admin' }
+  { role: 'Buyer', name: 'Demo Buyer', email: 'buyer@tweakd.demo', password: 'Buyer-Demo-2026', about: 'Browse, customise and order' },
+  { role: 'Artist', name: 'Demo Artist', email: 'artist@tweakd.demo', password: 'Artist-Demo-2026', about: 'Portfolio, listings and incoming orders' },
+  { role: 'Admin', name: 'Demo Admin', email: 'admin@tweakd.demo', password: 'Admin-Demo-2026', about: 'Management console at /admin' }
 ];
 
 /* ------------------------------------------------------------- database */
@@ -170,7 +170,7 @@ async function seedDemo() {
     if (d.role === 'Admin') u.admin = true;
   }
   const artist = made.Artist; if (!artist) { save(); return; }
-  artist.seller = { handle: 'demo-artist', headline: 'Demo artist account, to try the artist tools', category: 'tech', bio: 'This is a demo account created so you can try the artist side of Orbitly: the dashboard, portfolio and listings. Its artwork is generated by the site, not by a real person.', location: '', website: '', campus: 'Demo Campus', country: 'Demo', payout: '', accent: 2, avatar: 3, languages: ['English'], skills: ['Pattern', 'Illustration'], since: Date.now() };
+  artist.seller = { handle: 'demo-artist', headline: 'Demo artist account, to try the artist tools', category: 'tech', bio: 'This is a demo account created so you can try the artist side of Tweak’d: the dashboard, portfolio and listings. Its artwork is generated by the site, not by a real person.', location: '', website: '', campus: 'Demo Campus', country: 'Demo', payout: '', accent: 2, avatar: 3, languages: ['English'], skills: ['Pattern', 'Illustration'], since: Date.now() };
   const arts = [];
   for (let i = 0; i < 4; i++) { const id = crypto.randomBytes(8).toString('hex'), file = id + '.png'; fs.writeFileSync(path.join(UP_DIR, file), demoArt(i), { mode: 0o600 }); const rec = { id, owner: artist.id, title: ['Bloom pattern', 'Tile study', 'Peaks', 'Garden shapes'][i], file, created: Date.now() }; db.art.push(rec); arts.push(rec); }
   [['tote', 'Bloom pattern tote bag, printed to order', 0, 18, 5], ['mouse', 'Tile study desk mouse, one of a kind', 1, 24, 6], ['hoodie', 'Peaks hoodie with a printed back panel', 2, 45, 10], ['mug', 'Garden shapes ceramic mug', 3, 14, 4]].forEach(([product, title, ai, price, days]) => {
@@ -275,7 +275,7 @@ setInterval(() => { const n = Date.now(); for (const [k, v] of sessions) if (v.e
 /* ----------------------------------------------------------------- email */
 function mailHtml(subject, text) {
   const body = esc(text).split(/\n{2,}/).map(p => `<p style="margin:0 0 16px;line-height:1.6">${p.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#5B3DF5">$1</a>')}</p>`).join('');
-  return `<!doctype html><html><body style="margin:0;background:#F6F4EF;padding:32px 16px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#0E1015"><div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #E5E0D5;border-radius:16px;padding:32px"><div style="font-weight:700;font-size:20px;margin-bottom:22px">Orbitly</div><h1 style="font-size:20px;margin:0 0 16px">${esc(subject)}</h1>${body}</div></body></html>`;
+  return `<!doctype html><html><body style="margin:0;background:#F6F4EF;padding:32px 16px;font-family:Inter,Segoe UI,Arial,sans-serif;color:#0E1015"><div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #E5E0D5;border-radius:16px;padding:32px"><div style="font-weight:700;font-size:20px;margin-bottom:22px">Tweak’d</div><h1 style="font-size:20px;margin:0 0 16px">${esc(subject)}</h1>${body}</div></body></html>`;
 }
 async function sendMail({ to, subject, text }) {
   subject = String(subject).replace(/[\r\n]+/g, ' ').slice(0, 150);
@@ -292,7 +292,7 @@ async function sendMail({ to, subject, text }) {
 async function sendVerification(req, u) {
   const base = linkBase(req); if (!base) return audit('mail_skipped', { why: 'SITE_URL not set' });
   const token = newToken(); u.verify = { h: sha(token), exp: Date.now() + 24 * 3600e3 }; save();
-  await sendMail({ to: u.email, subject: 'Verify your email address', text: `Hi ${u.name.split(' ')[0]},\n\nWelcome to Orbitly! Please confirm your email address by opening this link (valid for 24 hours):\n\n${base}/verify?token=${token}\n\nIf you didn't create an account, you can ignore this email.` });
+  await sendMail({ to: u.email, subject: 'Verify your email address', text: `Hi ${u.name.split(' ')[0]},\n\nWelcome to Tweak’d! Please confirm your email address by opening this link (valid for 24 hours):\n\n${base}/verify?token=${token}\n\nIf you didn't create an account, you can ignore this email.` });
 }
 const lastNotify = new Map();
 
@@ -382,7 +382,7 @@ async function api(req, res, url) {
       const o = db.orders.find(x => x.id === +obj.client_reference_id);
       if (o && o.pay !== 'paid' && obj.payment_status === 'paid' && obj.currency === 'usd' && obj.amount_total === (o.total || o.price) * 100) {
         o.pay = 'paid'; o.paidAt = Date.now(); o.paymentIntent = String(obj.payment_intent || ''); o.updated = Date.now();
-        db.messages.push({ id: db.nextMsg++, from: o.buyer, to: o.seller, text: 'Payment received. Orbitly holds it until the buyer approves the delivery.', kind: 'system', orderId: o.id, created: Date.now(), read: false });
+        db.messages.push({ id: db.nextMsg++, from: o.buyer, to: o.seller, text: 'Payment received. Tweak’d holds it until the buyer approves the delivery.', kind: 'system', orderId: o.id, created: Date.now(), read: false });
         audit('order_paid', { order: o.id });
         for (const id of [o.buyer, o.seller]) notifyUser(id, 'order', { id: o.id, status: o.status, text: 'Payment received', alerts: alertsFor(id), unread: unreadFor(id), peer: id === o.buyer ? o.seller : o.buyer, self: false });
       } else if (o && o.pay !== 'paid') audit('stripe_amount_mismatch', { order: o.id });
@@ -511,7 +511,7 @@ async function api(req, res, url) {
     if (needCap(b)) return capFail(res);
     if (u && !limited('forgot-acct:' + u.id, 3, 3600e3)) {
       const base = linkBase(req);
-      if (base) { const token = newToken(); u.reset = { h: sha(token), exp: Date.now() + 3600e3 }; save(); sendMail({ to: u.email, subject: 'Reset your password', text: `Hi ${u.name.split(' ')[0]},\n\nSomeone (hopefully you) asked to reset your Orbitly password. Open this link within one hour to choose a new one:\n\n${base}/reset?token=${token}\n\nIf you didn't ask for this, you can safely ignore this email — your password won't change.` }).catch(() => {}); audit('reset_requested', { user: u.id }); }
+      if (base) { const token = newToken(); u.reset = { h: sha(token), exp: Date.now() + 3600e3 }; save(); sendMail({ to: u.email, subject: 'Reset your password', text: `Hi ${u.name.split(' ')[0]},\n\nSomeone (hopefully you) asked to reset your Tweak’d password. Open this link within one hour to choose a new one:\n\n${base}/reset?token=${token}\n\nIf you didn't ask for this, you can safely ignore this email — your password won't change.` }).catch(() => {}); audit('reset_requested', { user: u.id }); }
       else audit('mail_skipped', { why: 'SITE_URL not set' });
     }
     return send(res, 200, { ok: true }); // identical response whether or not the account exists
@@ -565,7 +565,7 @@ async function api(req, res, url) {
   }
   if (p === '/api/account/export' && m === 'GET') {
     const { salt, hash, kdf, verify, reset, totp, totpPending, ...me } = u;
-    return send(res, 200, { exportedAt: new Date().toISOString(), account: { ...me, twoFactor: !!totp?.enabled }, services: db.gigs.filter(g => g.owner === u.id), messages: db.messages.filter(x => x.from === u.id || x.to === u.id), orders: db.orders.filter(o => o.buyer === u.id || o.seller === u.id), reviews: db.reviews.filter(r => r.buyer === u.id || r.seller === u.id) }, { 'Content-Disposition': 'attachment; filename="my-orbitly-data.json"' });
+    return send(res, 200, { exportedAt: new Date().toISOString(), account: { ...me, twoFactor: !!totp?.enabled }, services: db.gigs.filter(g => g.owner === u.id), messages: db.messages.filter(x => x.from === u.id || x.to === u.id), orders: db.orders.filter(o => o.buyer === u.id || o.seller === u.id), reviews: db.reviews.filter(r => r.buyer === u.id || r.seller === u.id) }, { 'Content-Disposition': 'attachment; filename="my-tweakd-data.json"' });
   }
   if (p === '/api/account' && m === 'DELETE') {
     if (u.demo) return fail(res, 403, 'This is a shared demo account, so its login details cannot be changed.');
@@ -582,7 +582,7 @@ async function api(req, res, url) {
     if (!(await checkPw(u, b.password))) return fail(res, 401, 'Your password is wrong.');
     const secret = crypto.randomBytes(20); u.totpPending = { enc: encrypt(secret), exp: Date.now() + 15 * 60e3 }; save();
     const s32 = b32enc(secret);
-    return send(res, 200, { secret: s32, uri: `otpauth://totp/Orbitly:${encodeURIComponent(u.email)}?secret=${s32}&issuer=Orbitly` });
+    return send(res, 200, { secret: s32, uri: `otpauth://totp/${encodeURIComponent('Tweak’d')}:${encodeURIComponent(u.email)}?secret=${s32}&issuer=${encodeURIComponent('Tweak’d')}` });
   }
   if (p === '/api/2fa/enable' && m === 'POST') {
     if (limited('mfaen:' + u.id, 10)) return fail(res, 429, 'Too many attempts.');
@@ -741,7 +741,7 @@ async function api(req, res, url) {
     const k = `${to.id}:${u.id}`;
     if (MAIL_ON && to.verified && to.notify !== false && !isOnline(to.id) && !(lastNotify.get(k) > Date.now() - 3600e3) && linkBase(req)) {
       lastNotify.set(k, Date.now());
-      sendMail({ to: to.email, subject: `New message from ${u.name}`, text: `Hi ${to.name.split(' ')[0]},\n\n${u.name} sent you a ${gig ? 'service request' : 'message'} on Orbitly. Log in to read and reply:\n\n${linkBase(req)}\n\nYou can turn these emails off any time in Account settings.` }).catch(() => {});
+      sendMail({ to: to.email, subject: `New message from ${u.name}`, text: `Hi ${to.name.split(' ')[0]},\n\n${u.name} sent you a ${gig ? 'service request' : 'message'} on Tweak’d. Log in to read and reply:\n\n${linkBase(req)}\n\nYou can turn these emails off any time in Account settings.` }).catch(() => {});
     }
     return send(res, 201, { ok: true, peer: peerOut(to) });
   }
@@ -779,15 +779,15 @@ function serveFile(req, res, c, name) {
   res.writeHead(200, h); res.end(req.method === 'HEAD' ? undefined : c.buf);
 }
 const STATIC_META = {
-  '/': ['Orbitly — Custom products by artists around the world', 'Order bags, mice, mugs, hoodies and more customised by artists from campuses and countries around the world. Artists can open a free portfolio page and start selling.'],
-  '/about': ['About Orbitly', 'Why we built Orbitly: a place where artists put their work on everyday products and anyone can order them.'],
-  '/privacy': ['Privacy Policy — Orbitly', 'What data Orbitly collects, why, and how you can export or delete it.'],
-  '/terms': ['Terms of Service — Orbitly', 'The rules for using Orbitly as a buyer or an artist.'],
-  '/contact': ['Contact — Orbitly', 'Questions, feedback or need to report something? Get in touch with the Orbitly team.'],
-  '/forgot': ['Forgot your password? — Orbitly', 'Reset your Orbitly password by email.'],
-  '/reset': ['Choose a new password — Orbitly', 'Choose a new password for your Orbitly account.'],
-  '/verify': ['Verify your email — Orbitly', 'Confirm your email address for Orbitly.'],
-  '/admin': ['Admin — Orbitly', 'Management console.']
+  '/': ['Tweak’d — Custom products by artists around the world', 'Order bags, mice, mugs, hoodies and more customised by artists from campuses and countries around the world. Artists can open a free portfolio page and start selling.'],
+  '/about': ['About Tweak’d', 'Why we built Tweak’d: a place where artists put their work on everyday products and anyone can order them.'],
+  '/privacy': ['Privacy Policy — Tweak’d', 'What data Tweak’d collects, why, and how you can export or delete it.'],
+  '/terms': ['Terms of Service — Tweak’d', 'The rules for using Tweak’d as a buyer or an artist.'],
+  '/contact': ['Contact — Tweak’d', 'Questions, feedback or need to report something? Get in touch with the Tweak’d team.'],
+  '/forgot': ['Forgot your password? — Tweak’d', 'Reset your Tweak’d password by email.'],
+  '/reset': ['Choose a new password — Tweak’d', 'Choose a new password for your Tweak’d account.'],
+  '/verify': ['Verify your email — Tweak’d', 'Confirm your email address for Tweak’d.'],
+  '/admin': ['Admin — Tweak’d', 'Management console.']
 };
 const NOINDEX = new Set(['/forgot', '/reset', '/verify', '/admin']);
 function metaFor(req, pathname) {
@@ -795,17 +795,17 @@ function metaFor(req, pathname) {
   const sm = pathname.match(/^\/@([a-z0-9-]{3,24})\/?$/);
   if (STATIC_META[pathname]) {
     [title, desc] = STATIC_META[pathname];
-    if (pathname === '/' && SITE_URL) ld = { '@context': 'https://schema.org', '@graph': [{ '@type': 'Organization', name: 'Orbitly', url: SITE_URL }, { '@type': 'WebSite', name: 'Orbitly', url: SITE_URL }] };
+    if (pathname === '/' && SITE_URL) ld = { '@context': 'https://schema.org', '@graph': [{ '@type': 'Organization', name: 'Tweak’d', url: SITE_URL }, { '@type': 'WebSite', name: 'Tweak’d', url: SITE_URL }] };
   } else if (sm) {
     const u = publicUsers().find(x => x.seller?.handle === sm[1]);
     if (u) {
-      const s = u.seller; title = `${u.name} — ${s.headline} | Orbitly`; desc = `${u.name}${s.campus ? ' (' + s.campus + ')' : ''}: ${s.headline}. ${s.bio.replace(/\s+/g, ' ').slice(0, 130)}…`; type = 'profile';
+      const s = u.seller; title = `${u.name} — ${s.headline} | Tweak’d`; desc = `${u.name}${s.campus ? ' (' + s.campus + ')' : ''}: ${s.headline}. ${s.bio.replace(/\s+/g, ' ').slice(0, 130)}…`; type = 'profile';
       ld = { '@context': 'https://schema.org', '@type': 'ProfilePage', mainEntity: { '@type': 'Person', name: u.name, description: s.headline, url: `${base}/@${s.handle}`, ...(s.location ? { homeLocation: { '@type': 'Place', name: s.location } } : {}), ...(s.website ? { sameAs: [s.website] } : {}) } };
-    } else { status = 404; noindex = true; title = 'Artist not found — Orbitly'; desc = 'This artist page does not exist.'; }
-  } else { status = 404; noindex = true; title = 'Page not found — Orbitly'; desc = 'This page does not exist.'; }
+    } else { status = 404; noindex = true; title = 'Artist not found — Tweak’d'; desc = 'This artist page does not exist.'; }
+  } else { status = 404; noindex = true; title = 'Page not found — Tweak’d'; desc = 'This page does not exist.'; }
   const url = base + (pathname === '/' ? '' : pathname.replace(/\/+$/, '')), hasImg = !!getFile('og.jpg');
   const tags = `<title>${esc(title)}</title><meta name="description" content="${esc(desc)}">${noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url || base + '/')}">`}
-<meta property="og:site_name" content="Orbitly"><meta property="og:type" content="${type}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(url || base + '/')}">${hasImg ? `<meta property="og:image" content="${esc(base)}/og.jpg">` : ''}
+<meta property="og:site_name" content="Tweak’d"><meta property="og:type" content="${type}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(url || base + '/')}">${hasImg ? `<meta property="og:image" content="${esc(base)}/og.jpg">` : ''}
 <meta name="twitter:card" content="${hasImg ? 'summary_large_image' : 'summary'}"><meta name="twitter:title" content="${esc(title)}"><meta name="twitter:description" content="${esc(desc)}">${hasImg ? `<meta name="twitter:image" content="${esc(base)}/og.jpg">` : ''}${ld ? `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>` : ''}`;
   return { status, tags };
 }
@@ -860,7 +860,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 server.headersTimeout = 20e3; server.requestTimeout = 30e3; server.keepAliveTimeout = 65e3; server.maxHeadersCount = 60;
-server.listen(PORT, HOST, () => console.log(`Orbitly ${PROD ? '(production) ' : ''}running → http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${MAIL_ON && !RESEND_API_KEY ? '  [email: dev outbox]' : RESEND_API_KEY ? '  [email: Resend]' : '  [email: off]'}${ADMIN_ON ? '  [admin API on]' : ''}`));
+server.listen(PORT, HOST, () => console.log(`Tweak’d ${PROD ? '(production) ' : ''}running → http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}${MAIL_ON && !RESEND_API_KEY ? '  [email: dev outbox]' : RESEND_API_KEY ? '  [email: Resend]' : '  [email: off]'}${ADMIN_ON ? '  [admin API on]' : ''}`));
 const shutdown = sig => { console.log(`\n${sig} received — saving and exiting`); try { flush(); } catch (e) { console.error(e); } process.exit(0); };
 if (DEMO_ON) seedDemo().catch(e => console.error('demo seed failed:', e.message));
 process.on('SIGINT', () => shutdown('SIGINT')); process.on('SIGTERM', () => shutdown('SIGTERM'));

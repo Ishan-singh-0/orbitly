@@ -19,7 +19,7 @@ These are business choices, not code. Nothing below can start until they are set
 
 **Stripe Connect (Express accounts) with separate charges and transfers.**
 
-- Sellers onboard through Stripe-hosted Account Links. Orbitly never sees bank details or ID documents.
+- Sellers onboard through Stripe-hosted Account Links. Tweak’d never sees bank details or ID documents.
 - Buyers pay through **Stripe Checkout** (hosted page). Card data never touches our server, which keeps PCI scope at SAQ A.
 - The charge lands on the platform account. When the buyer marks the order complete, the server creates a **Transfer** to the seller's connected account minus the platform fee.
 - Holding funds this way has a time limit on card charges and transfers (check Stripe's current limits before promising anything), so auto-complete after N days of buyer silence needs to be part of the order workflow.

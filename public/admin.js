@@ -6,10 +6,10 @@ const usd = cents => '$' + (cents / 100).toLocaleString(undefined, { minimumFrac
 const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString(); };
 
 async function showAdmin() {
-  setView('page'); setMeta('Admin — Orbitly', 'Management console.'); scrollTo(0, 0);
+  setView('page'); setMeta('Admin — Tweak’d', 'Management console.'); scrollTo(0, 0);
   await ready;
   if (!S.user?.admin) {
-    pageV.innerHTML = S.user ? notFoundHTML('/admin') : `<div class="container nf"><div><p class="kicker">Admin</p><h1>Sign in to continue</h1><p class="lead">The management console is only for Orbitly admins.</p><div class="btn-row"><button class="btn btn-ink btn-lg" id="admLogin">Log in</button></div></div></div>`;
+    pageV.innerHTML = S.user ? notFoundHTML('/admin') : `<div class="container nf"><div><p class="kicker">Admin</p><h1>Sign in to continue</h1><p class="lead">The management console is only for Tweak’d admins.</p><div class="btn-row"><button class="btn btn-ink btn-lg" id="admLogin">Log in</button></div></div></div>`;
     $('#admLogin')?.addEventListener('click', () => { pending = showAdmin; openAuth('login', 'Log in to open the admin console.'); });
     return;
   }

@@ -1,14 +1,14 @@
-/* ============ ORBITLY — pages.js (About, Privacy, Terms, Contact) ============ */
+/* ============ TWEAK’D — pages.js (About, Privacy, Terms, Contact) ============ */
 const PAGE_META = {
-  about: ['About Orbitly', 'Why we built Orbitly: a simple, honest marketplace where independent talent gets its own page and clients get a direct line.'],
-  privacy: ['Privacy Policy — Orbitly', 'What data Orbitly collects, why, and how you can export or delete it.'],
-  terms: ['Terms of Service — Orbitly', 'The rules for using Orbitly as a buyer or an artist.'],
-  contact: ['Contact — Orbitly', 'Questions, feedback or need to report something? Get in touch with the Orbitly team.'],
-  forgot: ['Forgot your password? — Orbitly', 'Reset your Orbitly password by email.'],
-  reset: ['Choose a new password — Orbitly', 'Choose a new password for your Orbitly account.'],
-  verify: ['Verify your email — Orbitly', 'Confirm your email address for Orbitly.']
+  about: ['About Tweak’d', 'Why we built Tweak’d: a simple, honest marketplace where independent talent gets its own page and clients get a direct line.'],
+  privacy: ['Privacy Policy — Tweak’d', 'What data Tweak’d collects, why, and how you can export or delete it.'],
+  terms: ['Terms of Service — Tweak’d', 'The rules for using Tweak’d as a buyer or an artist.'],
+  contact: ['Contact — Tweak’d', 'Questions, feedback or need to report something? Get in touch with the Tweak’d team.'],
+  forgot: ['Forgot your password? — Tweak’d', 'Reset your Tweak’d password by email.'],
+  reset: ['Choose a new password — Tweak’d', 'Choose a new password for your Tweak’d account.'],
+  verify: ['Verify your email — Tweak’d', 'Confirm your email address for Tweak’d.']
 };
-const company = () => esc(S.cfg?.company || 'Orbitly');
+const company = () => esc(S.cfg?.company || 'Tweak’d');
 const contactLine = () => S.cfg?.contactEmail ? `email <a class="ulink" href="mailto:${esc(S.cfg.contactEmail)}">${esc(S.cfg.contactEmail)}</a> or use the <a class="ulink" href="/contact" data-nav>contact form</a>` : `use the <a class="ulink" href="/contact" data-nav>contact form</a>`;
 const pageShell = (_section, title, inner, updated) => `<div class="container static-page"><h1>${title}</h1>${updated ? `<p class="updated">Last updated ${updated}</p>` : ''}<div class="prose">${inner}</div></div>`;
 
@@ -17,7 +17,7 @@ const PAGES = {
   about() {
     const pay = !!S.cfg?.payments;
     return pageShell('About', 'Art you can use every day.', `
-      <p class="big">Orbitly is where artists put their work on things people actually use, and where anyone can order a bag, a mouse, a mug or a hoodie made by someone whose portfolio they can see first.</p>
+      <p class="big">Tweak’d is where artists put their work on things people actually use, and where anyone can order a bag, a mouse, a mug or a hoodie made by someone whose portfolio they can see first.</p>
       <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly, across campuses and across countries.</p>
       <h2>What you get</h2>
       <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their work, story, campus and the products they customise.</li>
@@ -25,8 +25,8 @@ const PAGES = {
       <li><b>Direct conversations.</b> Buyers message artists from their page. Replies arrive in real time.</li>
       <li><b>Simple orders and honest reviews.</b> Requests move from requested to delivered to completed, and only buyers who finished an order can review it.</li></ul>
       <h2>What we're upfront about</h2>
-      <p>Orbitly is new, and we'd rather tell you what it is today than promise things it isn't. Artists are independent people who created their own pages, and they make and ship the products themselves. We don't verify identities. ${pay ? 'Payments are taken through Stripe and held by Orbitly until you approve the delivery, then paid out to the artist.' : "We don't take payments yet; buyers and artists agree payment directly, so be cautious about paying in full before work begins."}</p>
-      <p>Everything you see on Orbitly, from the number of artists to who's online right now, comes from real activity on the site as it happens.</p>
+      <p>Tweak’d is new, and we'd rather tell you what it is today than promise things it isn't. Artists are independent people who created their own pages, and they make and ship the products themselves. We don't verify identities. ${pay ? 'Payments are taken through Stripe and held by Tweak’d until you approve the delivery, then paid out to the artist.' : "We don't take payments yet; buyers and artists agree payment directly, so be cautious about paying in full before work begins."}</p>
+      <p>Everything you see on Tweak’d, from the number of artists to who's online right now, comes from real activity on the site as it happens.</p>
       <h2>Get involved</h2>
       <p>If you draw, paint, letter or design, <a class="ulink" href="#" data-act="sell">open your artist page</a>. If you want something made, <a class="ulink" href="/#gigs" data-scroll>browse the marketplace</a>. And if you have ideas for how we can do better, we'd love to hear them. ${contactLine().replace(/^./, c => c.toUpperCase())}.</p>`);
   },
@@ -37,7 +37,7 @@ const PAGES = {
       <h2>2. What we collect</h2>
       <ul><li><b>Account details:</b> your name and email address, and a securely hashed version of your password (we never store the password itself).</li>
       <li><b>Artist page content:</b> if you open an artist page, the headline, bio, campus, country, city, languages, skills, website, listings and the images you upload. This content is public. Uploaded images are re-encoded in your browser, which removes camera metadata such as location.</li>
-      <li><b>Payout details:</b> if you sell, you may tell us how to pay you (for example a UPI ID or PayPal email). Only the Orbitly team can see it.</li>
+      <li><b>Payout details:</b> if you sell, you may tell us how to pay you (for example a UPI ID or PayPal email). Only the Tweak’d team can see it.</li>
       <li><b>Payments:</b> when online payment is on, card payments are handled entirely by Stripe on its own checkout page. We never see or store card numbers; we keep the order, amount and Stripe's payment reference.</li>
       <li><b>Messages:</b> the messages and service requests you send and receive. These are visible only to the people in the conversation.</li>
       <li><b>Orders and reviews:</b> the requests you make or receive and their status. A review you leave is public on the seller's page, shown with your first name and last initial.</li>
@@ -64,27 +64,27 @@ const PAGES = {
       <p>You can download a copy of your data or delete your account yourself from <b>Account settings</b> (open your account menu after signing in). You can also update your details there. Depending on where you live you may have further rights, such as to object to or restrict processing, or to complain to your local data protection authority. To exercise any right, ${contactLine()}.</p>
       <h2>8. Security</h2>
       <p>Passwords are hashed with scrypt, sessions use secure HttpOnly cookies, and connections should be served over HTTPS. No system is perfectly secure, so please use a strong, unique password.</p>
-      <h2>9. Children</h2><p>Orbitly is not intended for anyone under 16, and we do not knowingly collect their data.</p>
+      <h2>9. Children</h2><p>Tweak’d is not intended for anyone under 16, and we do not knowingly collect their data.</p>
       <h2>10. Changes</h2><p>If we make material changes we'll update the date below and, where appropriate, tell you on the site.</p>`, '24 November 2026');
   },
   terms() {
     return pageShell('Legal', 'Terms of service', `
-      <p class="big">These terms are the agreement between you and ${company()} when you use Orbitly. Please read them. By creating an account or using the site you agree to them.</p>
-      <h2>1. Who can use Orbitly</h2><p>You must be at least 16 and able to form a binding agreement. If you use Orbitly for a business, you confirm you can bind that business.</p>
+      <p class="big">These terms are the agreement between you and ${company()} when you use Tweak’d. Please read them. By creating an account or using the site you agree to them.</p>
+      <h2>1. Who can use Tweak’d</h2><p>You must be at least 16 and able to form a binding agreement. If you use Tweak’d for a business, you confirm you can bind that business.</p>
       <h2>2. Your account</h2><p>Keep your password secure and your details accurate. You are responsible for what happens under your account. Tell us promptly if you suspect unauthorised access.</p>
-      <h2>3. What Orbitly is, and isn't</h2>
-      <p>Orbitly is a platform where artists list customised products and buyers order them. <b>The artist, not Orbitly, makes and delivers each product.</b> Artists are independent, not our employees, agents or contractors. We do not verify the identity or qualifications of users or guarantee the quality or delivery of any product. ${S.cfg?.payments ? 'When a buyer pays online, Stripe takes the payment and Orbitly holds it until the buyer approves the delivery, then pays the artist, minus a platform fee shown before checkout. If an order is not delivered, tell us promptly and we will decide in good faith whether to refund it.' : 'Online payment is not switched on, so buyers and artists arrange payment directly between themselves, at their own risk.'}</p>
+      <h2>3. What Tweak’d is, and isn't</h2>
+      <p>Tweak’d is a platform where artists list customised products and buyers order them. <b>The artist, not Tweak’d, makes and delivers each product.</b> Artists are independent, not our employees, agents or contractors. We do not verify the identity or qualifications of users or guarantee the quality or delivery of any product. ${S.cfg?.payments ? 'When a buyer pays online, Stripe takes the payment and Tweak’d holds it until the buyer approves the delivery, then pays the artist, minus a platform fee shown before checkout. If an order is not delivered, tell us promptly and we will decide in good faith whether to refund it.' : 'Online payment is not switched on, so buyers and artists arrange payment directly between themselves, at their own risk.'}</p>
       <h2>4. Artists</h2>
       <ul><li>Provide accurate information about yourself and your listings.</li><li>Only upload and sell artwork you created or have the right to use. Do not use other people's characters, logos, brands or photographs without permission.</li><li>You keep the copyright in your art. By accepting an order you allow the buyer to receive and use the finished product, and you allow us to show your work on the site.</li><li>Deliver what you agree with buyers, and handle your own taxes, licences and legal obligations.</li></ul>
       <h2>5. Buyers</h2>
       <ul><li>Look at the artist's portfolio and ask questions before agreeing to anything.</li><li>Custom products are made to order, so check what's included and the delivery time first.</li><li>Be clear about what you need and pay what you agree.</li><li>Be careful about paying in full before work begins, and never share card or banking details inside messages.</li></ul>
-      <h2>6. Orders and reviews</h2><p>Requests, acceptance, delivery and approval on Orbitly are a record of what the buyer and seller agreed between themselves. Reviews must be honest and based on a real order you completed. We may remove reviews that are fake, abusive, or off-topic. ${S.cfg?.payments ? 'Payment disputes are handled as described in section 3.' : 'Orbitly does not hold or release payments, and does not decide disputes between buyers and artists.'}</p>
+      <h2>6. Orders and reviews</h2><p>Requests, acceptance, delivery and approval on Tweak’d are a record of what the buyer and seller agreed between themselves. Reviews must be honest and based on a real order you completed. We may remove reviews that are fake, abusive, or off-topic. ${S.cfg?.payments ? 'Payment disputes are handled as described in section 3.' : 'Tweak’d does not hold or release payments, and does not decide disputes between buyers and artists.'}</p>
       <h2>7. Not allowed</h2>
       <ul><li>Illegal, fraudulent, deceptive or infringing content or services.</li><li>Harassment, hate, threats, adult content involving minors, or malware.</li><li>Spam, scraping, or attempts to disrupt, probe or bypass the security of the site.</li><li>Impersonating others, or creating accounts to evade a suspension.</li></ul>
-      <h2>8. Your content</h2><p>You keep ownership of what you publish. You give us a non-exclusive, worldwide licence to host, display and distribute it on and in connection with Orbitly so the service can work (for example, showing your artist page and portfolio to visitors).</p>
+      <h2>8. Your content</h2><p>You keep ownership of what you publish. You give us a non-exclusive, worldwide licence to host, display and distribute it on and in connection with Tweak’d so the service can work (for example, showing your artist page and portfolio to visitors).</p>
       <h2>9. Reporting and enforcement</h2><p>If you see something that breaks these terms, <a class="ulink" href="/contact" data-nav>tell us</a>. We may remove content, suspend or close accounts at our discretion, with or without notice, to protect the community or comply with the law.</p>
       <h2>10. Ending your account</h2><p>You can delete your account at any time from Account settings. Sections that by their nature should survive (such as disclaimers and limits of liability) will continue to apply.</p>
-      <h2>11. Disclaimers</h2><p>Orbitly is provided "as is" and "as available". To the fullest extent permitted by law we disclaim all warranties, including fitness for a particular purpose, and we do not warrant that the site will be uninterrupted or error-free.</p>
+      <h2>11. Disclaimers</h2><p>Tweak’d is provided "as is" and "as available". To the fullest extent permitted by law we disclaim all warranties, including fitness for a particular purpose, and we do not warrant that the site will be uninterrupted or error-free.</p>
       <h2>12. Limit of liability</h2><p>To the fullest extent permitted by law, ${company()} is not liable for indirect, incidental or consequential losses, or for losses arising from dealings between users. Nothing in these terms limits liability that cannot be limited by law.</p>
       <h2>13. Changes</h2><p>We may update these terms. If changes are material we'll update the date below, and continued use means you accept the new terms.</p>
       <h2>14. Governing law and contact</h2><p>These terms are governed by the laws of the place where ${company()} is established, and the courts there have jurisdiction, unless mandatory consumer law says otherwise. Questions? ${contactLine().replace(/^./, c => c.toUpperCase())}.</p>`, '24 November 2026');
@@ -118,8 +118,8 @@ const PAGES = {
     const token = new URLSearchParams(location.search).get('token') || '';
     if (token) setTimeout(async () => {
       const out = $('#verifyOut'); if (!out) return; const j = await (VERIFY_RUNS[token] ||= call('POST', '/api/email/verify', { token })); // run once per token, even if the page re-renders
-      out.innerHTML = j.error ? `<div class="sent-card"><span class="ti err">${ic('x')}</span><h3>Couldn't verify</h3><p>${esc(j.error)}</p><a class="btn btn-ink" href="/" data-nav>Go to Orbitly</a></div>`
-        : `<div class="sent-card"><span class="ti">${ic('check')}</span><h3>Email verified</h3><p>Thanks! You can now publish listings and send messages.</p><a class="btn btn-ink" href="/" data-nav>Continue to Orbitly</a></div>`;
+      out.innerHTML = j.error ? `<div class="sent-card"><span class="ti err">${ic('x')}</span><h3>Couldn't verify</h3><p>${esc(j.error)}</p><a class="btn btn-ink" href="/" data-nav>Go to Tweak’d</a></div>`
+        : `<div class="sent-card"><span class="ti">${ic('check')}</span><h3>Email verified</h3><p>Thanks! You can now publish listings and send messages.</p><a class="btn btn-ink" href="/" data-nav>Continue to Tweak’d</a></div>`;
       if (!j.error) loadMe();
     }, 50);
     return pageShell('Account', 'Verifying your email…', token ? '<div id="verifyOut"><div class="sent-card"><span class="spinner"></span><p>One moment…</p></div></div>' : `<p class="big">This page needs a verification link from your email.</p>`);

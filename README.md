@@ -1,4 +1,6 @@
-# Orbitly
+<img src="public/logo.svg" width="72" alt="Tweak’d logo">
+
+# Tweak’d
 
 A marketplace where artists customise everyday products (bags, mice, mugs, hoodies, prints) and anyone can order them. Artists get portfolio pages and can list their campus; buyers pick the product, colour, size and artwork.
 **Zero runtime dependencies** — just Node 18+. Security details: [SECURITY.md](SECURITY.md).
@@ -14,9 +16,9 @@ When you run it locally (not in production) the first start creates three labell
 
 | Role | Email | Password | What you see |
 | --- | --- | --- | --- |
-| Buyer | buyer@orbitly.demo | Buyer-Demo-2026 | Browse, customise, order, review |
-| Artist | artist@orbitly.demo | Artist-Demo-2026 | Portfolio, listings, and one open request to accept |
-| Admin | admin@orbitly.demo | Admin-Demo-2026 | The management console at `/admin` |
+| Buyer | buyer@tweakd.demo | Buyer-Demo-2026 | Browse, customise, order, review |
+| Artist | artist@tweakd.demo | Artist-Demo-2026 | Portfolio, listings, and one open request to accept |
+| Admin | admin@tweakd.demo | Admin-Demo-2026 | The management console at `/admin` |
 
 On a public showcase (`DEMO_SEED=1` in production) the three demo accounts are shared, so their login details can't be changed or deleted and the demo admin is read-only.
 
@@ -51,7 +53,7 @@ Nothing on the site is demo content. Everything comes from real activity:
 
 ### What it does **not** do (yet)
 - **Automatic artist payouts.** Checkout is built (Stripe hosted Checkout, off until you add keys; see [PAYMENTS.md](PAYMENTS.md)) but payouts to artists are recorded by you with `tools/admin.js payout`; Stripe Connect is the next step.
-- **Printing and shipping.** The artist makes and ships each product; Orbitly does not fulfil orders.
+- **Printing and shipping.** The artist makes and ships each product; Tweak’d does not fulfil orders.
 - **Identity verification or vetting** of sellers.
 - **Image uploads** — covers and portraits are generated illustrations.
 - **Email change, admin web UI, restore tool.**
@@ -64,7 +66,7 @@ Environment variables — copy from `.env.example`:
 | --- | --- |
 | `NODE_ENV=production` | Production mode (binds `0.0.0.0`, request logging, no dev email outbox) |
 | `PORT` | Port (default 5180) |
-| `SITE_URL` | Public URL, e.g. `https://orbitly.com`. **Required in production** — validates the Host header, builds canonical/sitemap/email links |
+| `SITE_URL` | Public URL, e.g. `https://tweakd.com`. **Required in production** — validates the Host header, builds canonical/sitemap/email links |
 | `TRUST_PROXY=1`, `TRUST_PROXY_HOPS` | Behind a TLS-terminating proxy: trust `X-Forwarded-*` for real IPs and `Secure` cookies |
 | `FORCE_HTTPS=1` | Redirect HTTP → HTTPS |
 | `DATA_DIR` | Where `db.json`, `sessions.json`, `backups/` live. **Mount a persistent disk here** |
@@ -88,11 +90,11 @@ You need **a persistent disk** (data is stored as JSON files) and **HTTPS**.
 
 ### Option A — Docker (any host)
 ```
-docker build -t orbitly .
-docker run -d --name orbitly -p 3000:3000 -v orbitly-data:/data \
+docker build -t tweakd .
+docker run -d --name tweakd -p 3000:3000 -v tweakd-data:/data \
   --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges \
   -e SITE_URL=https://your-domain.com -e COMPANY_NAME="Your Company" -e FORCE_HTTPS=1 \
-  -e RESEND_API_KEY=... -e MAIL_FROM="Orbitly <noreply@your-domain.com>" -e ADMIN_TOKEN=... orbitly
+  -e RESEND_API_KEY=... -e MAIL_FROM="Tweak’d <noreply@your-domain.com>" -e ADMIN_TOKEN=... tweakd
 ```
 Put it behind a reverse proxy that provides HTTPS (Caddy example below).
 
@@ -110,7 +112,7 @@ your-domain.com {
   reverse_proxy 127.0.0.1:3000
 }
 ```
-Run with `NODE_ENV=production PORT=3000 TRUST_PROXY=1 SITE_URL=https://your-domain.com DATA_DIR=/var/lib/orbitly node server.js` under systemd/pm2.
+Run with `NODE_ENV=production PORT=3000 TRUST_PROXY=1 SITE_URL=https://your-domain.com DATA_DIR=/var/lib/tweakd node server.js` under systemd/pm2.
 With nginx, disable buffering for `/api/stream` (the server already sends `X-Accel-Buffering: no`).
 
 ## Launch checklist

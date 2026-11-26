@@ -1,4 +1,4 @@
-/* ============ ORBITLY — art.js ============
+/* ============ TWEAK’D — art.js ============
    Procedural illustrations: gig covers, seller portraits, profile banners, icons.
    Everything is inline SVG — no external images. */
 
