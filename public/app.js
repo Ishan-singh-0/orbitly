@@ -277,7 +277,7 @@ document.addEventListener('click', async e => {
   const j = await callC('/api/login', { email: d.email, password: d.password }); b.disabled = false;
   if (j.error || !j.user) return toast(j.error || 'Could not sign in', '', 'err');
   finishLogin(j.user, `Signed in as ${d.name}`); renderDemoStrip();
-  if (d.role === 'Admin') go('/admin'); else if (d.role === 'Artist') openDash();
+  if (d.role === 'Admin') go('/admin'); else if (/artist/i.test(d.role)) openDash(); else openOrders('buying');
 });
 let faqPay = null;
 function renderFaq() {

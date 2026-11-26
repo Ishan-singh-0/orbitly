@@ -156,12 +156,12 @@ main > section.tint { background: var(--tint); }
 /* ---- demo login + admin console ---- */
 .demo-strip { margin-top: 24px; max-width: 580px; }
 .demo-strip p { font-size: .82rem; color: var(--muted); margin-bottom: 10px; }
-.demo-strip > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.demo-strip > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .demo-strip .demo-btn:first-child { border-color: var(--pop); }
-@media (max-width: 520px) { .demo-strip > div { grid-template-columns: 1fr; } }
+
 .demo-login { margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--line); }
 .demo-login p { font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
-.demo-login > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.demo-login > div { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 8px; }
 .demo-btn { text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); transition: border-color .2s, transform .2s var(--ease); }
 .demo-btn:hover { border-color: var(--ink); transform: translateY(-2px); }
 .demo-btn b { display: block; font-size: .88rem; } .demo-btn small { color: var(--muted); font-size: .72rem; line-height: 1.3; display: block; margin-top: 2px; }
