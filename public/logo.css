@@ -1,0 +1,53 @@
+/* Tweak’d logo: layout and motion. Used by the app and by the GitHub Pages landing page. */
+.logo { display: inline-flex; align-items: center; gap: 11px; }
+.logo-img, .tw-mark { width: 42px; height: 42px; flex: none; }
+.tw-mark { overflow: visible; filter: drop-shadow(0 6px 14px rgba(255, 79, 38, .38)); transition: transform .5s cubic-bezier(.3, 1.7, .5, 1), filter .4s; }
+.logo .word, .tw-word { font-family: 'Instrument Serif', Georgia, serif; font-size: 2rem; font-weight: 400; letter-spacing: -.01em; line-height: 1; padding-bottom: 4px; white-space: nowrap; }
+.logo .word i { font-style: normal; color: #FF5A1F; }
+
+/* entrance */
+.tw-tile { transform-origin: 32px 32px; animation: tw-pop .75s cubic-bezier(.25, 1.7, .45, 1) both; }
+.tw-stem, .tw-bar { fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 1 2; animation: tw-draw .65s .3s cubic-bezier(.6, 0, .3, 1) both; }
+.tw-bar { animation-delay: .78s; animation-duration: .4s; }
+.tw-t { filter: drop-shadow(0 1.5px 0 rgba(120, 10, 40, .22)); }
+.tw-drop { transform-origin: 47px 30px; animation: tw-fall .75s 1.1s cubic-bezier(.45, 0, .55, 1) both; }
+.tw-splash { transform-origin: 48px 28px; opacity: 0; animation: tw-splash .6s 1.5s ease-out; }
+
+/* idle: colours drift, a gleam passes, and every few seconds the t gets "tweaked" */
+.tw-blob { animation: tw-drift-a 6s ease-in-out infinite alternate; }
+.tw-blob.b { animation: tw-drift-b 8s ease-in-out infinite alternate; }
+.tw-blob.c { animation: tw-drift-c 5s ease-in-out infinite alternate; }
+.tw-gleam { animation: tw-gleam 5.5s 2.2s ease-in-out infinite; }
+.tw-slider { animation: tw-tweak 5.5s 3.4s ease-in-out infinite; }
+.tw-hop { transform-origin: 47px 30px; animation: tw-nod 5.5s 3.55s ease-in-out infinite; }
+
+/* wordmark */
+.tw-l { display: inline-block; }
+.tw-l > span { display: inline-block; animation: tw-rise .65s calc(.45s + var(--k) * 65ms) cubic-bezier(.25, 1.5, .5, 1) both; }
+.tw-l.ap { color: #FF5A1F; }
+.tw-l.ap > span { animation-name: tw-drip; animation-delay: 1.15s; }
+
+/* hover: the tile tilts and the letters ripple */
+.logo:hover .tw-mark { transform: rotate(-9deg) scale(1.12); filter: drop-shadow(0 10px 20px rgba(255, 79, 38, .55)) saturate(1.2); }
+.logo:hover .tw-l { animation: tw-wave .6s calc(var(--k) * 45ms) cubic-bezier(.3, .8, .4, 1); }
+.logo:hover .tw-t { animation: tw-jelly .6s ease; transform-origin: 30px 34px; }
+
+@keyframes tw-pop { from { transform: scale(.2) rotate(-35deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes tw-draw { from { stroke-dashoffset: 1.02; opacity: 0; } 8% { opacity: 1; } to { stroke-dashoffset: 0; opacity: 1; } }
+@keyframes tw-fall { 0% { transform: translateY(-34px) scale(.65, 1.35); opacity: 0; } 15% { opacity: 1; } 55% { transform: translateY(1px) scale(1.35, .68); } 75% { transform: translateY(-5px) scale(.9, 1.12); } 100% { transform: none; opacity: 1; } }
+@keyframes tw-splash { 0% { transform: scale(.25); opacity: 1; } 70% { opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes tw-drift-a { to { transform: translate(26px, 14px); } }
+@keyframes tw-drift-b { to { transform: translate(-30px, -18px); } }
+@keyframes tw-drift-c { to { transform: translate(-22px, 30px); } }
+@keyframes tw-gleam { 0%, 62% { transform: translateX(0); } 84%, 100% { transform: translateX(120px); } }
+@keyframes tw-tweak { 0%, 70%, 100% { transform: none; } 76% { transform: translateX(5px); } 83% { transform: translateX(-3px); } 90% { transform: translateX(1px); } }
+@keyframes tw-nod { 0%, 70%, 100% { transform: none; } 76% { transform: rotate(-18deg) translateY(-3px); } 83% { transform: rotate(12deg); } 90% { transform: rotate(-4deg); } }
+@keyframes tw-rise { from { transform: translateY(70%) rotate(12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes tw-drip { 0% { transform: translateY(-120%); opacity: 0; } 60% { transform: translateY(14%) scale(1.3, .8); opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes tw-wave { 40% { transform: translateY(-6px) rotate(-6deg); } 70% { transform: translateY(2px); } }
+@keyframes tw-jelly { 30% { transform: scale(1.14, .86); } 55% { transform: scale(.92, 1.08); } 78% { transform: scale(1.03, .97); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-mark *, .tw-word *, .tw-l, .logo:hover .tw-l, .logo:hover .tw-t { animation: none !important; }
+  .tw-mark { transition: none; }
+}

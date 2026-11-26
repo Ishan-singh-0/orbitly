@@ -1,22 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FF9A3C"/>
-      <stop offset=".52" stop-color="#FF5A1F"/>
-      <stop offset="1" stop-color="#E9246B"/>
-    </linearGradient>
-    <radialGradient id="shine" cx=".22" cy=".12" r=".85">
-      <stop offset="0" stop-color="#fff" stop-opacity=".34"/>
-      <stop offset=".6" stop-color="#fff" stop-opacity="0"/>
-    </radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A2A"/><stop offset=".5" stop-color="#FF4F26"/><stop offset="1" stop-color="#D61F73"/></linearGradient>
+    <radialGradient id="y"><stop offset="0" stop-color="#FFE45C" stop-opacity=".95"/><stop offset="1" stop-color="#FFE45C" stop-opacity="0"/></radialGradient>
+    <radialGradient id="v"><stop offset="0" stop-color="#6A2BFF" stop-opacity=".9"/><stop offset="1" stop-color="#6A2BFF" stop-opacity="0"/></radialGradient>
+    <radialGradient id="p"><stop offset="0" stop-color="#FF2E9A" stop-opacity=".85"/><stop offset="1" stop-color="#FF2E9A" stop-opacity="0"/></radialGradient>
+    <clipPath id="c"><rect width="64" height="64" rx="19"/></clipPath>
   </defs>
-  <rect width="64" height="64" rx="18" fill="url(#bg)"/>
-  <rect width="64" height="64" rx="18" fill="url(#shine)"/>
-  <!-- a hand-drawn "t" -->
-  <g fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round">
-    <path d="M24 15.5V39c0 7.4 5.4 11.600 12.200 10.200 2.600-.55 4.700-1.800 6.300-3.500"/>
-    <path d="M15 27h20.500"/>
+  <g clip-path="url(#c)">
+    <rect width="64" height="64" fill="url(#g)"/>
+    <circle cx="14" cy="10" r="30" fill="url(#y)"/>
+    <circle cx="54" cy="58" r="34" fill="url(#v)"/>
+    <circle cx="56" cy="20" r="22" fill="url(#p)"/>
   </g>
-  <!-- the apostrophe: a drop of paint -->
-  <path d="M47.400 11.500c4 0 7 3 7 7.100 0 6.300-4.100 11.100-9.800 13.400-1 .4-1.800-.75-1.050-1.5 1.900-1.9 3-3.8 3.35-5.7-3.200-.5-5.500-3.150-5.5-6.45 0-3.9 2.600-6.85 6-6.85z" fill="#17101C"/>
+  <rect x=".7" y=".7" width="62.6" height="62.6" rx="18.4" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="1.4"/>
+  <g fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round">
+    <path d="M24 15.5V39c0 7.4 5.4 11.6 12.2 10.2 2.6-.55 4.7-1.8 6.3-3.5"/>
+    <path d="M15 27h20.5"/>
+  </g>
+  <path d="M47.4 11.5c4 0 7 3 7 7.1 0 6.3-4.1 11.1-9.8 13.4-1 .4-1.8-.75-1.05-1.5 1.9-1.9 3-3.8 3.35-5.7-3.2-.5-5.5-3.15-5.5-6.45 0-3.9 2.6-6.85 6-6.85z" fill="#150D1F"/>
+  <ellipse cx="44.8" cy="15.8" rx="1.5" ry="2.3" transform="rotate(35 44.8 15.8)" fill="#fff" opacity=".7"/>
 </svg>

@@ -34,11 +34,6 @@ h2 em, .hero h1 em { font-style: italic; color: var(--pop); }
 .btn:active { transform: translateY(0) scale(.98); }
 .btn-pop { background: var(--pop); color: var(--pop-ink); border-color: var(--pop); }
 .btn-pop:hover { box-shadow: 0 10px 26px -10px var(--pop); }
-.logo { gap: 10px; align-items: center; }
-.logo-img { width: 38px; height: 38px; flex: none; transition: transform .45s var(--ease); filter: drop-shadow(0 6px 12px rgba(255, 90, 31, .28)); }
-.logo:hover .logo-img { transform: rotate(-8deg) scale(1.07); }
-.logo .word { font-family: var(--serif); font-size: 1.9rem; font-weight: 400; letter-spacing: -.015em; line-height: 1; padding-bottom: 4px; }
-.logo .word i { font-style: normal; color: var(--pop); }
 
 /* ---- hero ---- */
 .hero { padding: clamp(36px, 6vw, 84px) 0 clamp(36px, 5vw, 64px); overflow: clip; }
@@ -215,3 +210,5 @@ main > section.tint { background: var(--tint); }
 .cta-list li span::before { content: none; }
 .cta-list li span { display: block; }
 .page-mock .pm-body .avatar { box-shadow: 0 0 0 5px #fff; }
+.nav-in #burger, .nav-in .logo { flex: none; }
+@media (max-width: 430px) { .nav-search { display: none; } .logo .tw-word, .logo .word { font-size: 1.55rem; } }
