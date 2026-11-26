@@ -3,14 +3,14 @@
 :root {
   --bg: #F3F0E9; --card: #FFFFFF; --tint: #EAE6DC; --soft: #EFEBE2; --line: #DDD8CB;
   --ink: #0F0F12; --ink2: #34363F; --muted: #686C78;
-  --pop: #FF5A1F; --pop-ink: #FFFFFF; --accent: #E5471A; --accent-soft: #FFE8DE;
+  --pop: #FF5757; --pop-ink: #FFFFFF; --accent: #E5471A; --accent-soft: #FFE8DE;
   --ease: cubic-bezier(.2, .7, .2, 1);
   --r: 22px;
 }
 :root[data-theme="dark"] {
   --bg: #0C0C0F; --card: #15151A; --tint: #101014; --soft: #1B1B21; --line: #2A2A32;
   --ink: #F4F2EC; --ink2: #CFCCC3; --muted: #8E8C95;
-  --pop: #FF6B35; --accent: #FF7A4D; --accent-soft: #33190F;
+  --pop: #FF6B6B; --accent: #FF7A4D; --accent-soft: #33190F;
 }
 html { scroll-padding-top: 90px; }
 body { letter-spacing: -.005em; }
@@ -211,4 +211,4 @@ main > section.tint { background: var(--tint); }
 .cta-list li span { display: block; }
 .page-mock .pm-body .avatar { box-shadow: 0 0 0 5px #fff; }
 .nav-in #burger, .nav-in .logo { flex: none; }
-@media (max-width: 430px) { .nav-search { display: none; } .logo .tw-word, .logo .word { font-size: 1.55rem; } }
+@media (max-width: 430px) { .nav-search { display: none; }  }

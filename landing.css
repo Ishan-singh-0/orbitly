@@ -1,7 +1,7 @@
 @font-face{font-family:'Instrument Serif';font-style:normal;font-weight:400;font-display:swap;src:url(public/fonts/instrument-serif-latin.woff2) format('woff2')}
 @font-face{font-family:'Instrument Serif';font-style:italic;font-weight:400;font-display:swap;src:url(public/fonts/instrument-serif-italic-latin.woff2) format('woff2')}
 @font-face{font-family:'Inter';font-weight:400 700;font-display:swap;src:url(public/fonts/inter-latin.woff2) format('woff2')}
-:root{--bg:#F3F0E9;--card:#fff;--tint:#EAE6DC;--soft:#EFEBE2;--line:#DDD8CB;--ink:#0F0F12;--ink2:#34363F;--muted:#686C78;--pop:#FF5A1F;--ease:cubic-bezier(.2,.7,.2,1);--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
+:root{--bg:#F3F0E9;--card:#fff;--tint:#EAE6DC;--soft:#EFEBE2;--line:#DDD8CB;--ink:#0F0F12;--ink2:#34363F;--muted:#686C78;--pop:#FF5757;--ease:cubic-bezier(.2,.7,.2,1);--serif:'Instrument Serif',Georgia,serif;--sans:'Inter',system-ui,sans-serif}
 @media (prefers-color-scheme:dark){:root{--bg:#0C0C0F;--card:#15151A;--tint:#101014;--soft:#1B1B21;--line:#2A2A32;--ink:#F4F2EC;--ink2:#CFCCC3;--muted:#8E8C95}}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}

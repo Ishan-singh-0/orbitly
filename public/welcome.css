@@ -1,0 +1,33 @@
+/* Welcome screen shown on every page load: the logo spins in on a solid curtain, then the two halves slide apart.
+   The whole sequence is CSS, so it opens even if scripts are slow. */
+.welcome { position: fixed; inset: 0; z-index: 2000; overflow: hidden; animation: wc-gone 0s 3.5s forwards; }
+.wc-half { position: absolute; top: 0; bottom: 0; width: calc(50% + 1px); background: #17131F; animation: wc-left .95s 2.5s cubic-bezier(.77, 0, .18, 1) forwards; }
+.wc-l { left: 0; }
+.welcome.opening .wc-l { box-shadow: 10px 0 0 0 #FF5757; }
+.welcome.opening .wc-r { box-shadow: -10px 0 0 0 #FAE05A; }
+.wc-r { right: 0; animation-name: wc-right; }
+.wc-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 24px; text-align: center; animation: wc-out .5s 2.3s cubic-bezier(.6, 0, .8, .4) forwards; }
+.wc-spin { animation: wc-spin 1.25s cubic-bezier(.2, .85, .25, 1.12) both; }
+.wc-logo .logo-img, .wc-logo .tw-mark { width: min(440px, 82vw); height: auto; aspect-ratio: 100 / 66; }
+.wc-center p { color: #F4F2EC; font: 500 1.35rem/1.4 'Inter', system-ui, sans-serif; letter-spacing: .01em; animation: wc-text .7s 1.25s cubic-bezier(.2, .7, .2, 1) both; }
+.wc-center p em { font: italic 400 1.5em 'Instrument Serif', Georgia, serif; color: #FAE05A; margin-left: .25em; }
+.wc-skip { position: absolute; right: 22px; bottom: 20px; padding: 8px 18px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, .28); background: none; color: #F4F2EC; font: 500 .84rem 'Inter', system-ui, sans-serif; cursor: pointer; animation: wc-out .3s 2.3s forwards; }
+.wc-skip:hover { background: rgba(255, 255, 255, .1); }
+.welcome.opening { pointer-events: none; }
+
+/* hold the page's own entrance animations until the curtain starts to open, and don't scroll behind it */
+body:has(.welcome:not(.opening)) { overflow: hidden; }
+body:has(.welcome:not(.opening)) :is(.hero, .nav, .art) *, body:has(.welcome:not(.opening)) .hero-art { animation-play-state: paused !important; }
+
+@keyframes wc-spin { from { transform: rotate(-540deg) scale(.08); opacity: 0; } 25% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes wc-text { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes wc-out { to { opacity: 0; transform: scale(1.14); visibility: hidden; } }
+@keyframes wc-left { to { transform: translateX(calc(-100% - 24px)); } }
+@keyframes wc-right { to { transform: translateX(calc(100% + 24px)); } }
+@keyframes wc-gone { to { visibility: hidden; pointer-events: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome { animation: wc-fade .4s .9s forwards; }
+  .wc-half, .wc-center, .wc-spin, .wc-center p, .wc-skip { animation: none; }
+}
+@keyframes wc-fade { to { opacity: 0; visibility: hidden; } }

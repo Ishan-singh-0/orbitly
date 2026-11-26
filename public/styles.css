@@ -679,8 +679,7 @@ hr.sep { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
   .nav-in { gap: 10px; }
   .nav-right { margin-left: auto; gap: 6px; }
   .nav-right .icon-btn { width: 38px; height: 38px; }
-  .logo .tw-word, .logo .word { font-size: 1.7rem; }
-  .logo .tw-mark, .logo .logo-img { width: 36px; height: 36px; }
+  .nav .logo .tw-mark, .nav .logo .logo-img { width: 73px; height: 48px; }
   .steps { grid-template-columns: 1fr; }
   .steps li, .steps li + li { padding: 24px 0; border-left: 0; border-bottom: 1px solid var(--line); }
   .row2, .dash-stats { grid-template-columns: 1fr; }
