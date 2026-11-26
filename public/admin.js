@@ -1,7 +1,7 @@
 // Admin console at /admin. Only works for users with the admin flag (the server checks every request; this is just the UI).
 // Uses the same /api/admin endpoints as tools/admin.js.
 
-let ADM = { tab: 'overview', data: null, money: null };
+let ADM = { tab: 'artists', data: null, money: null };
 const usd = cents => '$' + (cents / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const ago = t => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : m < 1440 ? Math.round(m / 60) + ' h ago' : new Date(t).toLocaleDateString(); };
 
@@ -23,13 +23,16 @@ async function loadAdmin() {
 }
 function paintAdmin() {
   const d = ADM.data; if (!d) return;
-  const c = d.counts, tabs = [['overview', 'Overview'], ['people', 'People'], ['listings', 'Listings'], ['orders', 'Orders'], ['money', 'Payments'], ['reports', 'Reports' + (c.reports ? ` (${c.reports})` : '')]];
+  const c = d.counts, waiting = (d.artists || []).filter(a => a.status === 'pending').length, tabs = [['artists', 'Artist approvals' + (waiting ? ` (${waiting})` : '')], ['overview', 'Overview'], ['people', 'People'], ['orders', 'Orders'], ['money', 'Payments'], ['reports', 'Reports' + (c.reports ? ` (${c.reports})` : '')]];
   const stat = (n, l) => `<div class="adm-stat"><b>${n}</b><span>${l}</span></div>`;
   let body = '';
-  if (ADM.tab === 'overview') body = `<div class="adm-stats">${stat(c.users, 'Members')}${stat(c.sellers, 'Artists')}${stat(c.services, 'Listings')}${stat(c.art, 'Artworks')}${stat(c.orders, 'Orders')}${stat(usd(c.paidCents), 'Paid volume')}${stat(c.online, 'Online now')}${stat(c.reports, 'Open reports')}</div>
+  if (ADM.tab === 'overview') body = `<div class="adm-stats">${stat(c.users, 'Members')}${stat(c.sellers, 'Artists')}${stat(waiting, 'Waiting approval')}${stat(c.art, 'Artworks')}${stat(c.orders, 'Orders')}${stat(usd(c.paidCents), 'Paid volume')}${stat(c.online, 'Online now')}${stat(c.reports, 'Open reports')}</div>
     <div class="adm-two"><div><h3>Newest members</h3>${userTable(d.users.slice(0, 6), true)}</div><div><h3>Latest orders</h3>${orderTable(d.orders.slice(0, 6))}</div></div>`;
   if (ADM.tab === 'people') body = `<input class="adm-q" id="admQ" placeholder="Filter by name, email or handle" aria-label="Filter people">${userTable(d.users)}`;
-  if (ADM.tab === 'listings') body = d.services.length ? `<table class="adm-t"><thead><tr><th>#</th><th>Listing</th><th>Product</th><th>Price</th><th>Listed</th><th></th></tr></thead><tbody>${d.services.map(g => `<tr><td>${g.id}</td><td>${esc(g.title)}</td><td>${esc(prodById(g.product)?.name || '—')}</td><td>${usd(g.price * 100)}</td><td>${ago(g.created)}</td><td class="r"><button class="btn btn-line btn-sm" data-adm="delgig" data-id="${g.id}">Remove</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty-s"><b>No listings yet</b></div>';
+  if (ADM.tab === 'artists') {
+    const group = (title, st, empty) => { const list = d.artists.filter(x => x.status === st); return `<h3>${title} <small>${list.length}</small></h3>` + (list.length ? `<div class="adm-artists">${list.map(x => `<article class="adm-artist"><div class="adm-a-head"><div><b>${esc(x.name)}</b><small>${esc(x.email)}${x.campus ? ' · ' + esc(x.campus) : ''}${x.country ? ' · ' + esc(x.country) : ''}</small></div><span class="adm-pill ${st === 'approved' ? 'ok' : st === 'rejected' ? 'bad' : 'due'}">${st}</span></div><p><b>${esc(x.headline)}</b><br>${esc(x.bio)}</p><div class="adm-works">${x.works.length ? x.works.map(w => `<img src="${esc(w)}" alt="Work by ${esc(x.name)}" loading="lazy">`).join('') : '<small>No artwork uploaded yet.</small>'}</div><div class="btn-row">${st !== 'approved' ? `<button class="btn btn-ink btn-sm" data-adm="approve" data-id="${x.id}">Approve as artist</button>` : ''}${st !== 'rejected' ? `<button class="btn btn-line btn-sm" data-adm="reject" data-id="${x.id}">${st === 'approved' ? 'Remove artist access' : 'Reject'}</button>` : ''}<a class="btn btn-line btn-sm" href="/@${esc(x.handle)}" data-nav>View page</a></div></article>`).join('')}</div>` : `<div class="empty-s">${empty}</div>`); };
+    body = '<p class="sub">Only accounts you approve here are artists: their page becomes public and customers can order from them.</p>' + group('Waiting for approval', 'pending', '<b>No applications waiting</b>New ones appear here.') + group('Approved artists', 'approved', 'None yet.') + group('Not approved', 'rejected', 'None.');
+  }
   if (ADM.tab === 'orders') body = orderTable(d.orders);
   if (ADM.tab === 'money') { const o = ADM.money.orders; body = `<p class="sub">Platform fee: <b>${ADM.money.feePercent}%</b>. Payouts to artists are recorded here after you have paid them yourself.</p>` + (o.length ? `<table class="adm-t"><thead><tr><th>Order</th><th>Paid</th><th>Fee</th><th>Owed to artist</th><th>Pay to</th><th>Status</th><th></th></tr></thead><tbody>${o.map(x => `<tr><td>#${x.id} ${esc(x.title)}<small>${esc(x.seller || '')}</small></td><td>${usd(x.totalCents)}</td><td>${usd(x.fee)}</td><td>${usd(x.payout)}</td><td>${esc(x.payoutTo || '(none given)')}</td><td><span class="adm-pill ${x.pay}">${x.pay}</span>${x.payoutDone ? '<span class="adm-pill ok">paid out</span>' : x.pay === 'paid' && x.status === 'completed' ? '<span class="adm-pill due">ready to pay out</span>' : ''}</td><td class="r">${x.pay === 'paid' && x.status === 'completed' && !x.payoutDone ? `<button class="btn btn-ink btn-sm" data-adm="payout" data-id="${x.id}">Mark paid out</button>` : ''}${x.pay === 'paid' && !x.payoutDone ? ` <button class="btn btn-line btn-sm" data-adm="refund" data-id="${x.id}">Refund</button>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-s"><b>No paid orders yet</b>' + (S.cfg?.payments ? 'Paid orders will appear here.' : 'Online payment is switched off. Add Stripe keys to turn it on.') + '</div>'); }
   if (ADM.tab === 'reports') body = d.contact.length ? d.contact.map(r => `<article class="adm-rep"><div><b>${esc(r.subject || '(no subject)')}</b><small>${esc(r.name)} · ${esc(r.email)} · ${ago(r.created)}</small></div><p>${esc(r.message)}</p><button class="btn btn-line btn-sm" data-adm="dismiss" data-id="${r.id}">Dismiss</button></article>`).join('') : '<div class="empty-s"><b>Nothing to review</b>Reports and contact messages show up here.</div>';
@@ -43,10 +46,11 @@ pageV.addEventListener('click', async e => {
   const b = e.target.closest('[data-adm]'); if (!b) return; const { adm: act, id } = b.dataset;
   if (act === 'tab') { ADM.tab = id; return paintAdmin(); }
   if (act === 'reload') { await loadAdmin(); return paintAdmin(); }
-  const ask = { deluser: 'Delete this user and everything they own? This cannot be undone.', delgig: 'Remove this listing?', refund: 'Refund this order through Stripe?', payout: 'Mark this order as paid out to the artist?' }[act];
+  const ask = { reject: 'Remove artist access for this person? Their page will be hidden.', deluser: 'Delete this user and everything they own? This cannot be undone.', delgig: 'Remove this listing?', refund: 'Refund this order through Stripe?', payout: 'Mark this order as paid out to the artist?' }[act];
   if (ask && !confirm(ask)) return;
   const r = act === 'ban' || act === 'unban' ? await call('POST', `/api/admin/users/${id}/ban`, { banned: act === 'ban' })
     : act === 'deluser' ? await call('DELETE', `/api/admin/users/${id}`) : act === 'delgig' ? await call('DELETE', `/api/admin/gigs/${id}`)
+    : act === 'approve' || act === 'reject' ? await call('POST', `/api/admin/artists/${id}`, { status: act === 'approve' ? 'approved' : 'rejected' })
     : act === 'dismiss' ? await call('DELETE', `/api/admin/contact/${id}`) : act === 'payout' ? await call('POST', `/api/admin/orders/${id}/payout`, {}) : act === 'refund' ? await call('POST', `/api/admin/orders/${id}/refund`, {}) : null;
   if (r?.error) return toast(r.error, '', 'err');
   toast('Done'); await loadAdmin(); paintAdmin();

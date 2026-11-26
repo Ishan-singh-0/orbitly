@@ -2,7 +2,7 @@
 
 No website can honestly be called "unhackable", and this one is no exception. What follows is exactly what Tweak’d
 does to protect itself and its users, what **you** must do on the hosting side, and what is still open.
-Every protection listed under "Built in" is covered by an automated attack test (182 checks) that was run against the app.
+Every protection listed under "Built in" is covered by an automated attack test (222 checks) that was run against the app.
 
 ## Built in
 
@@ -45,6 +45,8 @@ Every protection listed under "Built in" is covered by an automated attack test 
 | **Abuse limits** | 25 services/user, 60 messages/hour/user, email notifications throttled to 1/hour/sender, 5,000 concurrent live connections (12/IP), honeypot on the contact form |
 | **Moderation** | Admin API (bearer token, constant-time compare, 404 when disabled) + `tools/admin.js`: list reports, ban/unban, delete users and services. Banned users are signed out and hidden everywhere |
 | **Admin console** | `/admin` is available only to accounts flagged admin (never settable through the API, only with `tools/make-admin.js`). In production the admin must have two-step verification on. Every request goes through the same CSRF and rate limits; admin accounts can't be banned or deleted through the console |
+| **Artist approval** | Only admins can approve artists. Pending or removed artists are hidden everywhere (pages, gallery, artwork files, sitemap) and cannot receive orders |
+| **Inspiration pictures** | Served only to the customer who uploaded them, the artist they were sent to, and admins; never cached; unsent ones are deleted after a day |
 | **Audit log** | Sign-ups, failed/locked logins, resets, password changes, deletions and admin actions are written to stdout as JSON lines (no passwords, no message content) |
 | **Data at rest** | Data files are written atomically with `0600` permissions; daily backups (14 kept); the server refuses to start rather than overwrite a corrupt database |
 | **Crash safety** | On an unexpected exception the server flushes data and exits so your process manager restarts a clean process |

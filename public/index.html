@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="/site.css">
 <link rel="stylesheet" href="/logo.css">
 <link rel="stylesheet" href="/welcome.css">
+<link rel="stylesheet" href="/v4.css">
 </head>
 <body>
 <div class="welcome" id="welcome">
@@ -28,8 +29,8 @@
     <button class="icon-btn only-mobile" id="burger" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button>
     <a href="/" class="logo" data-nav aria-label="Tweak’d home"><img class="logo-img" src="/logo.svg" alt="Tweak’d" width="88" height="58"></a>
     <nav class="nav-links" id="navLinks">
-      <a href="/#cats" data-scroll>Products</a>
-      <a href="/#gigs" data-scroll>Listings</a>
+      <a href="/#cats" data-scroll>Customise</a>
+      <a href="/#gallery" data-scroll>Gallery</a>
       <a href="/#how" data-scroll>How it works</a>
       <a href="/#sellers" data-scroll>Artists</a>
     </nav>
@@ -39,7 +40,7 @@
       <button class="icon-btn" id="themeBtn" aria-label="Toggle theme"><svg class="i"><use href="#i-moon"/></svg></button>
       <button class="btn btn-line btn-sm hide-sm" id="loginBtn">Log in</button>
       <button class="btn btn-ink btn-sm" id="signupBtn">Sign up</button>
-      <button class="btn btn-pop btn-sm hide-sm" id="sellLink">Sell your art</button>
+      <button class="btn btn-pop btn-sm hide-sm" data-act="request">Customise</button><button id="sellLink" hidden></button>
       <div class="rel" id="avWrap" hidden><button class="avatar" id="avBtn" aria-label="Account menu"></button><span class="badge av-badge" id="avBadge" hidden>0</span><div class="pop" id="avPop"></div></div>
     </div>
   </div>
@@ -55,12 +56,12 @@
       <div class="hero-copy">
         <p class="hero-meta" id="heroMeta">Free to join, free to list</p>
         <h1><span class="ln"><span>Art you</span></span> <span class="ln"><span>can <em>carry.</em></span></span></h1>
-        <p class="lead">Pick a bag, a mouse, a mug or a hoodie. Choose an artist from your campus or anywhere in the world, choose the colour, and get it made with their artwork on it.</p>
-        <div class="hero-cta"><a class="btn btn-ink btn-lg" href="/#cats" data-scroll>Browse products</a><button class="btn btn-line btn-lg" data-act="sell">Sell your art</button></div>
+        <p class="lead">Bring your own bag, mouse or hoodie. Share what inspires you, and an artist from your campus or anywhere in the world makes it yours.</p>
+        <div class="hero-cta"><button class="btn btn-pop btn-lg magnet" data-act="request">Customise my item</button><a class="btn btn-line btn-lg magnet" href="/#gallery" data-scroll>See artists' work</a></div>
         <div class="demo-strip" id="demoStrip" hidden></div>
         <form class="hero-search" id="heroForm" autocomplete="off">
           <svg class="i"><use href="#i-search"/></svg>
-          <input id="heroIn" placeholder="Search products, artists or styles" aria-label="Search">
+          <input id="heroIn" placeholder="Search artwork, artists or campuses" aria-label="Search">
           <button type="button" class="clear" id="heroClear" aria-label="Clear"><svg class="i"><use href="#i-x"/></svg></button>
           <button class="btn btn-ink" type="submit">Search</button>
           <div class="suggest" id="suggest"></div>
@@ -74,31 +75,23 @@
 
   <div class="marquee" aria-hidden="true"><div class="marquee-in"><span>Tote bags</span><i></i><span>Computer mice</span><i></i><span>Hoodies</span><i></i><span>Mugs</span><i></i><span>Desk mats</span><i></i><span>Phone cases</span><i></i><span>Framed prints</span><i></i><span>Notebooks</span><i></i><span>Tote bags</span><i></i><span>Computer mice</span><i></i><span>Hoodies</span><i></i><span>Mugs</span><i></i><span>Desk mats</span><i></i><span>Phone cases</span><i></i><span>Framed prints</span><i></i><span>Notebooks</span><i></i></div></div>
 
+  <div class="marquee alt" aria-hidden="true"><div class="marquee-in"><span>Your bag</span><i></i><span>Your mouse</span><i></i><span>Your sneakers</span><i></i><span>Your rules</span><i></i><span>Your bag</span><i></i><span>Your mouse</span><i></i><span>Your sneakers</span><i></i><span>Your rules</span><i></i></div></div>
+
   <section class="live-strip" aria-label="Tweak’d right now"><div class="container" id="liveStrip"></div></section>
 
   <section id="cats">
     <div class="container">
-      <div class="sec-head reveal"><h2>Start with a <em>product</em></h2><p>Twelve everyday things, each in several colours. Choose one to see the artists who customise it. Previews use sample artwork.</p></div>
+      <div class="sec-head reveal"><h2>What shall we <em>customise?</em></h2><p>Pick the thing you own, or choose “Something else”. The artwork shown here is only a sample.</p></div>
       <div class="prods reveal" id="catGrid"></div>
     </div>
   </section>
 
-  <section id="gigs" class="tint">
+  <section id="gallery" class="tint">
     <div class="container">
-      <div class="sec-head reveal"><h2>Made by <em>artists</em></h2><p>Each listing shows the product, the artist and the price up front. New ones appear here as soon as they are published.</p></div>
-      <div class="filters">
-        <div class="chips-row" id="filterChips"></div>
-        <div class="filters-r">
-          <select class="select-mini" id="campusSel" aria-label="Filter by campus"><option value="">All campuses</option></select>
-          <label class="range"><span>Budget</span><input type="range" id="priceR" min="10" max="500" value="500" step="10"><output id="priceO">$500+</output></label>
-          <select class="select-mini" id="sort" aria-label="Sort services"><option value="new">Newest first</option><option value="rated">Best rated</option><option value="low">Price: low to high</option><option value="high">Price: high to low</option><option value="fast">Fastest delivery</option></select>
-        </div>
-      </div>
-      <div class="result-count" aria-live="polite"><b id="resN">0</b> <span id="resW">listings</span></div>
+      <div class="sec-head reveal"><h2>From our <em>artists</em></h2><p>A showcase of what they make. Like a style? Ask that artist to put it, or something like it, on your own thing.</p></div>
       <div class="active-f" id="activeF"></div>
-      <div class="gigs" id="gigGrid"></div>
+      <div class="shots" id="gallery-grid"></div>
       <div class="more"><button class="btn btn-line btn-lg" id="moreBtn">Show more</button></div>
-      <div class="recent" id="recent" hidden></div>
     </div>
   </section>
 
@@ -106,10 +99,10 @@
     <div class="container how-grid">
       <div class="how-head reveal"><h2>How it <em>works</em></h2><p>You talk to the artist directly and agree everything together. Nothing is hidden behind a form.</p></div>
       <ol class="steps">
-        <li class="reveal"><span class="num">01</span><div><h3>Pick a product</h3><p>Browse bags, desk gear, clothing, mugs and prints, in the colours and sizes that suit you.</p></div></li>
-        <li class="reveal"><span class="num">02</span><div><h3>Choose an artist</h3><p>Look through portfolios from campuses and countries around the world. Open any page to see the work first.</p></div></li>
-        <li class="reveal"><span class="num">03</span><div><h3>Customise it</h3><p>Choose a colour, a size and a piece of the artist's work, and see a preview before you send the request.</p></div></li>
-        <li class="reveal"><span class="num">04</span><div><h3>Agree and receive</h3><p>Settle the details in chat, pay if online payment is on, approve the delivery and leave a review.</p></div></li>
+        <li class="reveal"><span class="num">01</span><div><h3>Tell us what you have</h3><p>A bag, a mouse, a hoodie, sneakers, a skateboard. Pick the thing and the artist you like.</p></div></li>
+        <li class="reveal"><span class="num">02</span><div><h3>Share your inspiration</h3><p>Add pictures, links and notes in the inspiration tab, or point to a piece from the artist's showcase.</p></div></li>
+        <li class="reveal"><span class="num">03</span><div><h3>Get a quote</h3><p>The artist replies with a price and delivery time. Nothing starts until you accept it.</p></div></li>
+        <li class="reveal"><span class="num">04</span><div><h3>Receive and review</h3><p>Hand over or receive your item, approve the work, and leave a review.</p></div></li>
       </ol>
     </div>
   </section>
@@ -123,7 +116,7 @@
 
   <section id="sellers" class="tint">
     <div class="container">
-      <div class="sec-head reveal"><h2>New <em>artists</em></h2><p>The latest people to join. Each has a page with their portfolio, story and products.</p></div>
+      <div class="sec-head reveal"><h2>Meet the <em>artists</em></h2><p>Every artist is approved before joining. Open a page to see their work and order from them.</p></div>
       <div class="seller-row" id="sellerRow"></div>
     </div>
   </section>
@@ -131,14 +124,14 @@
   <section class="cta-sec" id="why">
     <div class="container">
       <div class="cta reveal">
-        <div class="cta-copy"><h2>Bring your art to <em>Tweak’d</em></h2><p>Stop sending portfolios as attachments. Give people one link that shows your work, the products you customise and how to reach you.</p>
-          <ul class="cta-list"><li><span></span>Free to create your page</li><li><span></span>Upload your portfolio</li><li><span></span>Sell to your campus and the world</li></ul>
-          <button class="btn btn-pop btn-lg" id="sellBtn">Open your artist page</button></div>
+        <div class="cta-copy"><h2>Bring your art to <em>Tweak’d</em></h2><p>Show your creations in one place and let people ask you to make their things special. Apply, and once approved your showcase goes live.</p>
+          <ul class="cta-list"><li><span></span>Upload your showcase</li><li><span></span>Set your own price on every order</li><li><span></span>Reach your campus and the world</li></ul>
+          <button class="btn btn-pop btn-lg magnet" id="sellBtn">Apply to be an artist</button></div>
         <div class="page-mock" aria-hidden="true">
           <div class="pm-ban" id="pmBan"></div>
           <div class="pm-body"><span class="avatar lg" id="pmAv"></span><div><b>Your name</b><small>Illustrator · Your campus</small><span class="pm-url mono" id="pmUrl">/@yourname</span><span class="mono" id="exAddr" hidden></span></div></div>
           <div class="pm-chips"><span>Illustration</span><span>Lettering</span><span>Pattern</span></div>
-          <div class="pm-svc"><div class="pm-art" id="pmArt"></div><div><b>Your first custom product</b><small>Delivered in 5 days</small></div><span class="pm-price">$50</span></div>
+          <div class="pm-svc"><div class="pm-art" id="pmArt"></div><div><b>A new custom order</b><small>Waiting for your quote</small></div><span class="pm-price">New</span></div>
           <span class="pm-note">Example</span>
         </div>
       </div>
@@ -162,8 +155,8 @@
     <div class="foot-top">
       <div><a href="/" class="logo" data-nav><img class="logo-img" src="/logo.svg" alt="Tweak’d" width="88" height="58"></a>
         <p>A marketplace where artists customise everyday products and anyone can order them.</p></div>
-      <div><h5>Explore</h5><a href="/#cats" data-scroll>Products</a><a href="/#gigs" data-scroll>Listings</a><a href="/#sellers" data-scroll>Artists</a><a href="/#how" data-scroll>How it works</a><a href="/#faq" data-scroll>FAQ</a></div>
-      <div><h5>Sell</h5><a href="#" id="footSell">Become an artist</a><a href="#" id="footDash">Artist dashboard</a></div>
+      <div><h5>Explore</h5><a href="/#cats" data-scroll>Customise</a><a href="/#gallery" data-scroll>Gallery</a><a href="/#sellers" data-scroll>Artists</a><a href="/#how" data-scroll>How it works</a><a href="/#faq" data-scroll>FAQ</a></div>
+      <div><h5>Artists</h5><a href="#" id="footSell">Apply to be an artist</a><a href="#" id="footDash">Artist dashboard</a></div>
       <div><h5>Company</h5><a href="/about" data-nav>About</a><a href="/contact" data-nav>Contact</a></div>
       <div><h5>Legal</h5><a href="/privacy" data-nav>Privacy policy</a><a href="/terms" data-nav>Terms of service</a></div>
     </div>
@@ -184,6 +177,9 @@
 <script src="/pages.js"></script>
 <script src="/app.js"></script>
 <script src="/auth.js"></script>
+<script src="/request.js"></script>
+<script src="/chat.js"></script>
+<script src="/fx.js"></script>
 <script src="/admin.js"></script>
 <script src="/motion.js"></script>
 <script src="/logo.js"></script>

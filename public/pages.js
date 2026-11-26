@@ -20,8 +20,8 @@ const PAGES = {
       <p class="big">Tweak’d is where artists put their work on things people actually use, and where anyone can order a bag, a mouse, a mug or a hoodie made by someone whose portfolio they can see first.</p>
       <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly, across campuses and across countries.</p>
       <h2>What you get</h2>
-      <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their work, story, campus and the products they customise.</li>
-      <li><b>A real customiser.</b> Pick the product, colour, size and a piece from the artist's portfolio, and see it before you send the request.</li>
+      <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their showcase, story and campus. Artist accounts are approved by an admin.</li>
+      <li><b>Custom orders.</b> Tell an artist what you own, share your inspiration, and get a quote before anything starts.</li>
       <li><b>Direct conversations.</b> Buyers message artists from their page. Replies arrive in real time.</li>
       <li><b>Simple orders and honest reviews.</b> Requests move from requested to delivered to completed, and only buyers who finished an order can review it.</li></ul>
       <h2>What we're upfront about</h2>
@@ -36,6 +36,7 @@ const PAGES = {
       <h2>1. Who we are</h2><p>This site is operated by ${company()}. If you have questions about this policy or your data, ${contactLine()}.</p>
       <h2>2. What we collect</h2>
       <ul><li><b>Account details:</b> your name and email address, and a securely hashed version of your password (we never store the password itself).</li>
+      <li><b>Order requests:</b> the item you describe, notes, budget, links and inspiration pictures. Pictures are visible only to you, the artist you chose and admins.</li>
       <li><b>Artist page content:</b> if you open an artist page, the headline, bio, campus, country, city, languages, skills, website, listings and the images you upload. This content is public. Uploaded images are re-encoded in your browser, which removes camera metadata such as location.</li>
       <li><b>Payout details:</b> if you sell, you may tell us how to pay you (for example a UPI ID or PayPal email). Only the Tweak’d team can see it.</li>
       <li><b>Payments:</b> when online payment is on, card payments are handled entirely by Stripe on its own checkout page. We never see or store card numbers; we keep the order, amount and Stripe's payment reference.</li>
@@ -73,7 +74,7 @@ const PAGES = {
       <h2>1. Who can use Tweak’d</h2><p>You must be at least 16 and able to form a binding agreement. If you use Tweak’d for a business, you confirm you can bind that business.</p>
       <h2>2. Your account</h2><p>Keep your password secure and your details accurate. You are responsible for what happens under your account. Tell us promptly if you suspect unauthorised access.</p>
       <h2>3. What Tweak’d is, and isn't</h2>
-      <p>Tweak’d is a platform where artists list customised products and buyers order them. <b>The artist, not Tweak’d, makes and delivers each product.</b> Artists are independent, not our employees, agents or contractors. We do not verify the identity or qualifications of users or guarantee the quality or delivery of any product. ${S.cfg?.payments ? 'When a buyer pays online, Stripe takes the payment and Tweak’d holds it until the buyer approves the delivery, then pays the artist, minus a platform fee shown before checkout. If an order is not delivered, tell us promptly and we will decide in good faith whether to refund it.' : 'Online payment is not switched on, so buyers and artists arrange payment directly between themselves, at their own risk.'}</p>
+      <p>Tweak’d is a platform where customers ask artists to customise their things. <b>The artist, not Tweak’d, makes and delivers each product.</b> Artists are independent, not our employees, agents or contractors. We do not verify the identity or qualifications of users or guarantee the quality or delivery of any product. ${S.cfg?.payments ? 'When a buyer pays online, Stripe takes the payment and Tweak’d holds it until the buyer approves the delivery, then pays the artist, minus a platform fee shown before checkout. If an order is not delivered, tell us promptly and we will decide in good faith whether to refund it.' : 'Online payment is not switched on, so buyers and artists arrange payment directly between themselves, at their own risk.'}</p>
       <h2>4. Artists</h2>
       <ul><li>Provide accurate information about yourself and your listings.</li><li>Only upload and sell artwork you created or have the right to use. Do not use other people's characters, logos, brands or photographs without permission.</li><li>You keep the copyright in your art. By accepting an order you allow the buyer to receive and use the finished product, and you allow us to show your work on the site.</li><li>Deliver what you agree with buyers, and handle your own taxes, licences and legal obligations.</li></ul>
       <h2>5. Buyers</h2>

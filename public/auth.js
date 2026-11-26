@@ -138,8 +138,8 @@ function renderUser() {
     <button class="menu-item" data-act="messages">${ic('chat')} Messages <span class="count unread-pill" id="msgCount" hidden>0</span></button>
     <button class="menu-item" data-act="orders">${ic('briefcase')} Orders <span class="count unread-pill" id="ordCount" hidden>0</span></button>
     ${u.admin ? `<a class="menu-item" href="/admin" data-nav>${ic('shield')} Admin console</a>` : ''}
-    ${u.seller ? `<a class="menu-item" href="/@${u.seller.handle}" data-nav>${ic('user')} My seller page</a><button class="menu-item" data-act="dash">${ic('trend')} Seller dashboard</button>` : `<button class="menu-item" data-act="sell">${ic('edit')} Become a seller</button>`}
-    <button class="menu-item" data-act="favs">${ic('heart')} Favorites <span class="count" id="favN">${S.fav.size}</span></button>
+    <button class="menu-item" data-act="request">${ic('edit')} New custom order</button>
+    ${u.seller ? `<a class="menu-item" href="/@${u.seller.handle}" data-nav>${ic('user')} My artist page</a><button class="menu-item" data-act="dash">${ic('trend')} Artist dashboard${u.artist === 'approved' ? '' : ` <span class="count">${u.artist}</span>`}</button>` : `<button class="menu-item" data-act="sell">${ic('briefcase')} Apply to be an artist</button>`}
     <button class="menu-item" data-act="settings">${ic('gear')} Account settings</button>
     <button class="menu-item" data-act="logout">${ic('logout')} Log out</button>`;
   updateBadge();
@@ -154,13 +154,7 @@ $('#avPop').addEventListener('click', async e => {
   if (act === 'messages') openMessages();
   if (act === 'orders') openOrders();
   if (act === 'settings') openSettings();
-  if (act === 'favs') {
-    if (location.pathname !== '/') { history.pushState({}, '', '/'); showHome(); }
-    S.cat = 'all'; S.q = ''; $('#heroIn').value = ''; S.onlyFav = true;
-    $$('#filterChips .chip').forEach(x => x.classList.toggle('active', x.dataset.cat === 'all'));
-    renderGigs(); goHash('gigs');
-    toast(S.fav.size ? 'Showing your favorites' : 'No favorites yet', 'Tap the heart on any service');
-  }
+  if (act === 'request') openRequest();
   if (act === 'logout') {
     await call('POST', '/api/logout', {}); S.user = null; S.unread = 0; S.alerts = 0;
     renderUser(); updateBadge(); closeDyn(); connectStream(); rerender(); toast('Logged out');
@@ -170,58 +164,41 @@ $('#avPop').addEventListener('click', async e => {
 // ---------------------------------------------------------------- seller onboarding and dashboard
 
 function openSeller() {
-  if (!S.user) { pending = openSeller; return openAuth('signup', 'Create a free account to start selling your art.'); }
+  if (!S.user) { pending = openSeller; return openAuth('signup', 'Create a free account first, then apply to be an artist.'); }
   S.user.seller ? openDash() : paintOnboard();
 }
 function paintOnboard() {
   const handle = slug(S.user.name).slice(0, 24);
-  openDyn(`<div class="pad"><h2>Open your artist page</h2><p class="sub">This is your public portfolio page. People see it before they get in touch, and you can change everything later.</p><div id="aErr"></div>
+  openDyn(`<div class="pad"><h2>Apply to be an artist</h2><p class="sub">Fill in your page and send it for review. An admin approves artist accounts; once approved your page goes public and customers can send you orders.</p><div id="aErr"></div>
     <form id="sellForm" novalidate>
       <label class="field"><span>Your page address</span><div class="pfx"><b>${esc(location.host)}/@</b><input name="handle" maxlength="24" value="${esc(handle)}" autocapitalize="off" spellcheck="false"></div></label>
       <label class="field"><span>Headline</span><input name="headline" maxlength="70" placeholder="Illustrator turning doodles into desk gear"></label>
       <div class="row2"><label class="field"><span>Campus or college <em class="opt">(optional)</em></span><input name="campus" maxlength="60" placeholder="e.g. IIT Delhi"></label><label class="field"><span>Country <em class="opt">(optional)</em></span><input name="country" maxlength="40" placeholder="India"></label></div>
       <label class="field"><span>What do you mostly make?</span><select name="category">${catOpts('bags')}</select></label>
       <label class="field"><span>About you</span><textarea name="bio" rows="4" maxlength="800" placeholder="What do you draw or make? What styles are you known for? Who have you worked with?"></textarea><small id="bioN">0 / 800</small></label>
-      <button class="btn btn-ink btn-lg btn-block" id="sGo">Create my page</button></form></div>`, 'narrow');
+      <button class="btn btn-ink btn-lg btn-block" id="sGo">Send application</button></form></div>`, 'narrow');
 }
 
-let dashTab = 'gigs';
+let dashTab = 'work';
 async function refreshMe() { const me = await call('GET', '/api/me'); if (me.user) { S.user = me.user; renderUser(); } }
-function todoHTML() {
-  const s = S.user.seller, mine = G.filter(g => g.owner === S.user.id).length, steps = [['Upload your first piece of artwork', s.works > 0, 'work'], ['List a product with your art on it', mine > 0, 'gigs'], ['Share your page link', false, 'share']];
-  if (s.works > 0 && mine > 0) return '';
-  return `<div class="todo"><b>Getting started</b><ol>${steps.map(([t, done, tab]) => `<li class="${done ? 'done' : ''}">${tab === 'share' ? `<button class="linklike" data-share="${esc(s.handle)}">${t}</button>` : `<button class="linklike" data-tab="${tab}">${t}</button>`}</li>`).join('')}</ol></div>`;
+function statusHTML() {
+  const st = S.user.artist, s = S.user.seller;
+  if (st === 'approved') return s.works ? '' : '<div class="todo"><b>You are approved.</b> Upload your first piece so customers can see your style.</div>';
+  return st === 'rejected' ? '<div class="todo bad"><b>Your application was not approved.</b> Improve your page or showcase, then save “My page” to apply again.</div>'
+    : '<div class="todo wait"><b>Waiting for approval.</b> Add a few pieces to your showcase now: the admin looks at them. Your page is private until then.</div>';
 }
 function dashHead() {
   const u = S.user, s = u.seller;
   return `<div class="pad dash"><div class="dash-head"><span class="avatar lg">${avatar(AV_OFFSET + s.avatar)}</span><div style="flex:1"><h2>${esc(u.name)}</h2><small>${esc(s.headline)}</small></div><a class="btn btn-line btn-sm" href="/@${s.handle}" data-nav>View my page ${ic('upright')}</a></div>
-    ${todoHTML()}<div class="tabs" id="tabs"><button data-tab="gigs">Products</button><button data-tab="work">Portfolio</button><button data-tab="profile">My page</button></div><div id="dashBody"></div></div>`;
+    ${statusHTML()}<div class="tabs" id="tabs"><button data-tab="work">Showcase</button><button data-tab="profile">My page</button></div><div id="dashBody"></div></div>`;
 }
-function openDash(tab) { if (!S.user?.seller) return openSeller(); dashTab = tab || (S.user.seller.works ? dashTab || 'gigs' : 'work'); openDyn(dashHead(), 'wide'); paintTab(dashTab); }
+function openDash(tab) { if (!S.user?.seller) return openSeller(); dashTab = tab === 'profile' || tab === 'work' ? tab : dashTab; openDyn(dashHead(), 'wide'); paintTab(dashTab); }
 dyn.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) paintTab(t.dataset.tab); });
 function paintTab(tab) {
   dashTab = tab; $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   const body = $('#dashBody'), u = S.user, s = u.seller;
-  if (tab === 'gigs') {
-    const mine = G.filter(g => g.owner === u.id), avg = mine.length ? Math.round(mine.reduce((a, g) => a + g.price, 0) / mine.length) : 0;
-    body.innerHTML = `<div class="dash-stats"><div><b>${mine.length}</b><span>Active listings</span></div><div><b>${mine.length ? money(avg) : '—'}</b><span>Average price</span></div><div><b>${s.reviews ? s.rating.toFixed(1) + ' ★' : '—'}</b><span>${s.reviews ? plural(s.reviews, 'review') : 'No reviews yet'}</span></div></div>
-    <h3>List a custom product</h3><div id="aErr"></div>
-    <form id="gigForm" novalidate>
-      <div class="row2"><label class="field"><span>Product</span><select name="product" id="gProd">${PRODUCT_GROUPS.filter(g => g.id !== 'digital').map(g => `<optgroup label="${g.name}">${PRODUCTS.filter(p => p.group === g.id).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}</optgroup>`).join('')}<option value="">Digital artwork only (no product)</option></select></label>
-      <label class="field"><span>Cover artwork</span><select name="artwork" id="gArt"><option value="">None yet</option></select></label></div>
-      <div id="gPrev" class="g-prev"></div>
-      <label class="field"><span>Title</span><input name="title" maxlength="90" placeholder="Hand-drawn botanical tote bag, made to order"></label>
-      <div class="row2"><label class="field"><span>Tags (comma separated, max 3)</span><input name="tags" maxlength="60" placeholder="Botanical, Illustration"></label><label class="field"><span>Price per item (USD)</span><input name="price" type="number" min="5" max="5000" value="25"></label></div>
-      <div class="row2"><label class="field"><span>Delivery (days)</span><input name="days" type="number" min="1" max="60" value="7"></label><label class="field"><span>Shop category</span><select name="category">${catOpts(s.category)}</select></label></div>
-      <label class="field"><span>Description</span><textarea name="description" rows="5" maxlength="1200" placeholder="How do you make it? Printing method, materials, what you need from the buyer, shipping."></textarea></label>
-      <label class="field"><span>What's included <em class="opt">(one item per line, up to 6)</em></span><textarea name="included" rows="4" maxlength="600" placeholder="The blank product&#10;Your artwork, printed&#10;1 round of changes to the layout"></textarea></label>
-      <button class="btn btn-ink btn-lg btn-block" id="gGo">Publish listing</button></form>
-    <h3 style="margin-top:34px">Your listings</h3>
-    ${mine.length ? mine.map(g => `<div class="my-gig"><div class="th">${coverFor(g)}</div><div><b>${g.title}</b><small>${money(g.price)} · ${g.days} day${g.days > 1 ? 's' : ''}</small></div><button class="rm" data-delgig="${g.id}" aria-label="Delete listing">${ic('trash')}</button></div>`).join('') : '<div class="empty-s"><b>No listings yet</b>Publish your first one above and it appears in the marketplace straight away.</div>'}`;
-    fillGigArt();
-  }
   if (tab === 'work') {
-    body.innerHTML = `<p class="sub">Upload your best work. Buyers see it on your page and can pick a piece to put on a product. JPG, PNG or WebP; large images are shrunk for you.</p><div id="aErr"></div>
+    body.innerHTML = `<p class="sub">Upload your creations. This is your showcase: customers look at it to choose whose style they want on their own things. JPG, PNG or WebP; large images are shrunk for you.</p><div id="aErr"></div>
     <form id="upForm" class="up-form" novalidate><label class="field"><span>Title</span><input name="title" maxlength="60" placeholder="Monstera study, ink and watercolour"></label><label class="field"><span>Image</span><input type="file" id="upFile" accept="image/png,image/jpeg,image/webp"></label><button class="btn btn-ink" id="upGo">Upload</button></form>
     <div id="myWork" class="works dash-works"><small>Loading…</small></div>`;
     paintMyWork();
@@ -244,17 +221,6 @@ function paintTab(tab) {
 }
 let myArt = [];
 async function loadMyArt() { const j = await call('GET', '/api/sellers/' + S.user.seller.handle); myArt = j.art || []; return myArt; }
-async function fillGigArt() {
-  await loadMyArt(); const sel = $('#gArt'); if (!sel) return;
-  sel.innerHTML = '<option value="">None yet</option>' + myArt.map(a => `<option value="${esc(a.id)}">${esc(a.title)}</option>`).join('');
-  if (myArt[0]) sel.value = myArt[0].id; gigPreview();
-}
-function gigPreview() {
-  const f = $('#gigForm'); if (!f) return; const a = myArt.find(x => x.id === f.artwork.value), p = prodById(f.product.value);
-  $('#gPrev').innerHTML = p ? mockup(p.id, p.colors[0][1], a?.url || '', { bg: '#ECE9E2', placeholder: true }) : a ? `<img class="art-img" src="${esc(a.url)}" alt="">` : '';
-  if (p && f.category) f.category.value = p.group;
-}
-dyn.addEventListener('change', e => { if (e.target.id === 'gProd' || e.target.id === 'gArt') gigPreview(); });
 async function paintMyWork() {
   await loadMyArt(); const box = $('#myWork'); if (!box) return;
   box.innerHTML = myArt.length ? myArt.map(a => `<div class="work"><img src="${esc(a.url)}" alt="${esc(a.title)}"><span>${esc(a.title)}</span><button class="rm" data-delart="${esc(a.id)}" aria-label="Delete ${esc(a.title)}">${ic('trash')}</button></div>`).join('') : '<div class="empty-s"><b>No artwork yet</b>Upload your first piece above.</div>';
@@ -292,18 +258,18 @@ async function loadConvs() {
   MG.convs = j.conversations; S.unread = j.unread; updateBadge();
   $('#mgList').innerHTML = j.conversations.length
     ? j.conversations.map(c => `<button class="mg-item ${MG.peer?.id === c.peer.id ? 'on' : ''}" data-peer="${c.peer.id}"><span class="avatar md">${peerAv(c.peer)}</span><span class="mg-t"><b>${esc(c.peer.name)}</b><small>${c.last.mine ? 'You: ' : ''}${esc(c.last.text)}</small></span><span class="mg-m"><time>${when(c.last.created)}</time>${c.unread ? `<i class="unread-pill">${c.unread}</i>` : ''}</span></button>`).join('')
-    : '<div class="empty-s"><b>No conversations yet</b>Message a seller from their page or send a service request.</div>';
+    : '<div class="empty-s"><b>No conversations yet</b>Send a custom order, or message an artist from their page.</div>';
 }
 function bubble(m) {
   if (m.kind === 'system') return `<div class="sys-msg">${esc(m.text).replace(/\n/g, '<br>')}${m.orderId ? ' <button class="linklike" data-act="orders">View order</button>' : ''}</div>`;
-  if (m.kind === 'order') return `<div class="bub ${m.mine ? 'mine' : ''}"><div class="order-card"><span class="oc-l">${ic('briefcase')} Service request</span><b>${esc(m.gigTitle)}</b><small>${money(m.gigPrice)} · ${m.gigDays}-day delivery</small></div>${m.text ? `<p>${esc(m.text)}</p>` : ''}<time>${when(m.created)}</time></div>`;
+  if (m.kind === 'order') return `<div class="bub ${m.mine ? 'mine' : ''}"><div class="order-card"><span class="oc-l">${ic('briefcase')} Order request</span><b>${esc(m.gigTitle)}</b><small>${m.gigPrice ? `${money(m.gigPrice)} · ${m.gigDays}-day delivery` : 'Waiting for a quote'}</small></div>${m.text ? `<p>${esc(m.text)}</p>` : ''}<time>${when(m.created)}</time></div>`;
   return `<div class="bub ${m.mine ? 'mine' : ''}"><p>${esc(m.text)}</p><time>${when(m.created)}</time></div>`;
 }
 async function openThread(peerId) {
   const j = await call('GET', '/api/conversations/' + peerId);
   if (j.error || !$('#mgMain')) return toast(j.error || 'Could not open that conversation', '', 'err');
   MG.peer = j.peer; $('#mg').classList.add('thread-open');
-  $('#mgMain').innerHTML = `<header class="mg-head"><button class="icon-btn mg-back" data-mgback aria-label="Back to conversations">${ic('left')}</button><span class="avatar">${peerAv(j.peer)}</span><div><b>${esc(j.peer.name)}</b>${j.peer.handle ? `<a class="ulink" href="/@${j.peer.handle}" data-nav>View seller page</a>` : '<small>Buyer</small>'}</div></header>
+  $('#mgMain').innerHTML = `<header class="mg-head"><button class="icon-btn mg-back" data-mgback aria-label="Back to conversations">${ic('left')}</button><span class="avatar">${peerAv(j.peer)}</span><div><b>${esc(j.peer.name)}</b>${j.peer.handle ? `<a class="ulink" href="/@${j.peer.handle}" data-nav>View artist page</a>` : '<small>Customer</small>'}</div></header>
     <div class="mg-msgs" id="mgMsgs">${j.messages.map(bubble).join('') || '<div class="empty-s"><b>Say hello</b>Start the conversation below.</div>'}</div>
     ${j.canReply ? `<form class="mg-compose" id="mgForm" data-peer="${j.peer.id}"><textarea name="text" rows="1" maxlength="2000" placeholder="Write a message…" aria-label="Message"></textarea><button class="btn btn-ink" aria-label="Send">${ic('send')}</button></form>` : '<div class="mg-note">You can reply once this person has messaged you.</div>'}`;
   const box = $('#mgMsgs'); box.scrollTop = box.scrollHeight; $('#mgForm textarea')?.focus(); loadConvs();
@@ -328,45 +294,49 @@ dyn.addEventListener('input', e => { const t = e.target; if (t.closest('#mgForm'
 
 // ---------------------------------------------------------------- orders and reviews
 
-const ORD_STATUS = { requested: 'Waiting for the artist', in_progress: 'In progress', delivered: 'Delivered, awaiting approval', completed: 'Completed', declined: 'Declined', cancelled: 'Cancelled' };
+const ORD_STATUS = { requested: 'Waiting for the artist', quoted: 'Quote received', in_progress: 'In progress', delivered: 'Delivered, awaiting approval', completed: 'Completed', declined: 'Declined', cancelled: 'Cancelled' };
 async function openOrders(tab) {
   if (!S.user) { pending = () => openOrders(tab); return openAuth('login', 'Log in to see your orders.'); }
   if (tab) ORD.tab = tab;
-  openDyn(`<div class="pad"><h2>Orders</h2><p class="sub">Requests you've sent and received.</p>
-    <div class="tabs" id="ordTabs"><button data-ot="buying">Buying</button><button data-ot="selling">Selling</button></div><div id="ordBody"><div class="empty-s">Loading…</div></div></div>`, 'wide');
+  openDyn(`<div class="pad"><h2>Orders</h2><p class="sub">Your custom orders, from first request to finished piece.</p>
+    <div class="tabs" id="ordTabs"><button data-ot="buying">My orders</button><button data-ot="selling">Requests for me</button></div><div id="ordBody"><div class="empty-s">Loading…</div></div></div>`, 'wide');
   ORD.open = true; await loadOrders();
 }
 async function loadOrders() {
   const j = await call('GET', '/api/orders'); if (j.error || !$('#ordBody')) return;
   ORD.data = j; S.alerts = j.alerts; updateBadge();
-  const need = list => list.filter(o => (o.role === 'seller' && (o.status === 'requested' || o.status === 'in_progress')) || (o.role === 'buyer' && o.status === 'delivered')).length;
+  const need = list => list.filter(o => (o.role === 'seller' && (o.status === 'requested' || o.status === 'in_progress')) || (o.role === 'buyer' && (o.status === 'delivered' || o.status === 'quoted'))).length;
   $$('#ordTabs button').forEach(b => {
     const n = need(j[b.dataset.ot]); b.classList.toggle('on', b.dataset.ot === ORD.tab);
-    b.innerHTML = (b.dataset.ot === 'buying' ? 'Buying' : 'Selling') + (n ? ` <span class="n">${n}</span>` : '');
+    b.innerHTML = (b.dataset.ot === 'buying' ? 'My orders' : 'Requests for me') + (n ? ` <span class="n">${n}</span>` : '');
   });
   paintOrders();
 }
 function paintOrders() {
   const list = ORD.data?.[ORD.tab] || [];
   $('#ordBody').innerHTML = list.length ? list.map(orderCard).join('')
-    : `<div class="empty-s"><b>${ORD.tab === 'buying' ? 'Nothing ordered yet' : 'No requests yet'}</b>${ORD.tab === 'buying' ? 'Open a listing and send a request to get started.' : 'Requests from buyers show up here the moment they arrive.'}</div>`;
+    : `<div class="empty-s"><b>${ORD.tab === 'buying' ? 'Nothing ordered yet' : 'No requests yet'}</b>${ORD.tab === 'buying' ? 'Press “Customise my item” to send your first order.' : 'Customer requests show up here the moment they arrive.'}</div>`;
 }
 function orderCard(o) {
   const seller = o.role === 'seller', p = o.product && prodById(o.product); let actions = '';
   const opts = [p?.name, o.options.color, o.options.size, o.qty > 1 ? 'Qty ' + o.qty : ''].filter(Boolean).map(esc).join(' · ');
   const payChip = o.pay === 'paid' ? '<span class="pay-chip paid">Paid</span>' : o.pay === 'refunded' ? '<span class="pay-chip">Refunded</span>' : '';
   if (o.canPay) actions += `<button class="btn btn-lime btn-sm" data-pay="${o.id}">Pay ${money(o.total)}</button>`;
-  if (seller && o.status === 'requested') actions += `<button class="btn btn-ink btn-sm" data-oa="accept" data-order="${o.id}">Accept</button><button class="btn btn-line btn-sm" data-oa="decline" data-order="${o.id}">Decline</button>`;
+  const custom = o.kind === 'custom';
+  if (seller && o.status === 'requested') actions += `${custom ? `<button class="btn btn-ink btn-sm" data-oform="quote" data-order="${o.id}">Send a quote</button>` : `<button class="btn btn-ink btn-sm" data-oa="accept" data-order="${o.id}">Accept</button>`}<button class="btn btn-line btn-sm" data-oa="decline" data-order="${o.id}">Decline</button>`;
+  if (seller && o.status === 'quoted') actions += `<button class="btn btn-line btn-sm" data-oform="quote" data-order="${o.id}">Change quote</button>`;
+  if (!seller && o.status === 'quoted') actions += `<button class="btn btn-pop btn-sm" data-oa="accept_quote" data-order="${o.id}">Accept ${money(o.total)}</button><button class="btn btn-line btn-sm" data-oa="cancel" data-order="${o.id}">No thanks</button>`;
   if (seller && o.status === 'in_progress') actions += `<button class="btn btn-ink btn-sm" data-oform="deliver" data-order="${o.id}">Deliver work</button>`;
   if (!seller && o.status === 'requested') actions += `<button class="btn btn-line btn-sm" data-oa="cancel" data-order="${o.id}">Cancel request</button>`;
   if (!seller && o.status === 'delivered') actions += `<button class="btn btn-ink btn-sm" data-oa="complete" data-order="${o.id}">Approve and complete</button><button class="btn btn-line btn-sm" data-oform="revise" data-order="${o.id}">Ask for changes</button>`;
   if (!seller && o.status === 'completed' && !o.review) actions += `<button class="btn btn-ink btn-sm" data-oform="review" data-order="${o.id}">Leave a review</button>`;
   const stars5 = [5, 4, 3, 2, 1].map(n => `<input type="radio" name="rating" id="rv${o.id}_${n}" value="${n}"><label for="rv${o.id}_${n}" title="${n} star${n > 1 ? 's' : ''}">${ic('star', 'fill')}</label>`).join('');
   return `<article class="ord" data-ord="${o.id}">
-    <div class="ord-h"><div><b>${esc(o.gigTitle)}</b><small>${seller ? 'Buyer' : 'Artist'}: ${esc(o.peer.name)} · ${money(o.total)} · ${o.days}-day delivery · ${when(o.created)}</small></div><span class="st st-${o.status}">${ORD_STATUS[o.status]}</span></div>
+    <div class="ord-h"><div><b>${esc(o.gigTitle)}</b><small>${seller ? 'Customer' : 'Artist'}: ${esc(o.peer.name)} · ${o.total ? `${money(o.total)} · ${o.days}-day delivery` : o.budget ? 'Budget ' + money(o.budget) : 'No quote yet'} · ${when(o.created)}</small></div><span class="st st-${o.status}">${ORD_STATUS[o.status]}</span></div>
     ${p ? `<div class="ord-prod"><span class="op-art">${mockup(p.id, (p.colors.find(c => c[0] === o.options.color) || p.colors[0])[1], o.artworkUrl, { bg: '#ECE9E2' })}</span><span>${opts}${payChip}</span></div>` : payChip}
-    ${o.brief ? `<p class="ord-brief">${esc(o.brief)}</p>` : ''}${o.delivery ? `<div class="ord-del"><b>Delivery note</b><p>${esc(o.delivery)}</p></div>` : ''}
+    ${o.brief ? `<p class="ord-brief">${esc(o.brief)}</p>` : ''}${o.deadline ? `<p class="ord-meta">${ic('clock')} Needed by ${new Date(o.deadline + 'T00:00').toLocaleDateString()}</p>` : ''}${o.inspiration.length || o.links.length ? `<div class="ord-insp"><b>Inspiration</b><div>${o.inspiration.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Inspiration"></a>`).join('')}</div>${o.links.map(l => `<a class="ulink" href="${esc(l)}" target="_blank" rel="nofollow noopener noreferrer">${esc(l)}</a>`).join('')}</div>` : ''}${o.quoteNote ? `<div class="ord-del"><b>Note with the quote</b><p>${esc(o.quoteNote)}</p></div>` : ''}${o.delivery ? `<div class="ord-del"><b>Delivery note</b><p>${esc(o.delivery)}</p></div>` : ''}
     <div class="ord-act">${actions}<button class="btn btn-line btn-sm" data-open-chat="${o.peer.id}">${ic('chat')} Conversation</button></div>
+    <form class="ord-form" data-order="${o.id}" data-action="quote" hidden><div class="ferr"></div><div class="row2"><label class="field"><span>Your price (USD)</span><input name="price" type="number" min="5" max="5000" value="${o.total || o.budget || 25}"></label><label class="field"><span>Ready in (days)</span><input name="days" type="number" min="1" max="90" value="${o.days || 7}"></label></div><label class="field"><span>Note to the customer <em class="opt">(optional)</em></span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send quote</button></form>
     <form class="ord-form" data-order="${o.id}" data-action="deliver" hidden><div class="ferr"></div><label class="field"><span>Delivery note: what are you handing over, and where can they get it?</span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send delivery</button></form>
     <form class="ord-form" data-order="${o.id}" data-action="revise" hidden><div class="ferr"></div><label class="field"><span>What needs to change?</span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send request</button></form>
     <form class="ord-review" data-order="${o.id}" hidden><div class="ferr"></div><div class="star-pick" role="radiogroup" aria-label="Rating">${stars5}</div><label class="field"><span>Your review <em class="opt">(optional)</em></span><textarea name="text" rows="3" maxlength="800" placeholder="What was it like to work with ${esc(o.peer.name.split(' ')[0])}?"></textarea></label><button class="btn btn-ink btn-sm">Post review</button></form>
@@ -474,12 +444,6 @@ const forms = {
   },
   async sellForm(f) { return saveSeller(f, $('#sGo')); },
   async profForm(f) { return saveSeller(f, $('#pGo')); },
-  async gigForm(f) {
-    const btn = $('#gGo'); errBox(''); busy(btn, true);
-    const j = await call('POST', '/api/gigs', Object.fromEntries(new FormData(f)));
-    if (j.error) { busy(btn, false, 'Publish listing'); return errBox(j.error); }
-    await Promise.all([loadGigs(), loadSellers()]); rerender(); await refreshMe(); toast('Listing published', "It's live in the marketplace"); openDash('gigs');
-  },
   async upForm(f) {
     const file = $('#upFile').files[0], btn = $('#upGo'); errBox('');
     if (!file) return errBox('Choose an image first.');
@@ -488,7 +452,7 @@ const forms = {
       const blob = await prepareImage(file);
       const r = await fetch('/api/art?title=' + encodeURIComponent(new FormData(f).get('title') || file.name.replace(/\.[^.]+$/, '')), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: blob, credentials: 'same-origin' });
       const j = await r.json().catch(() => ({ error: 'The upload failed.' })); if (j.error) throw new Error(j.error);
-      artCache.delete(S.user.seller.handle); await Promise.all([loadSellers(), refreshMe()]); rerender(); toast('Artwork added', 'It is on your page now'); openDash('work');
+      sellerWorks.delete(S.user.seller.handle); await Promise.all([loadSellers(), loadGallery(), refreshMe()]); rerender(); toast('Artwork added', S.user.artist === 'approved' ? 'It is on your page and in the gallery' : 'The admin can see it with your application'); openDash('work');
     } catch (e) { busy(btn, false, 'Upload'); errBox(e.message || 'The upload failed.'); }
   },
   async msgForm(f) {
@@ -505,7 +469,7 @@ const forms = {
   },
   async nameForm(f) {
     const j = await call('POST', '/api/account', { name: new FormData(f).get('name') }); if (j.error) return formErr(f, j.error);
-    formErr(f, ''); S.user = { ...S.user, ...j.user }; renderUser(); toast('Name updated'); await Promise.all([loadGigs(), loadSellers()]);
+    formErr(f, ''); S.user = { ...S.user, ...j.user }; renderUser(); toast('Name updated'); await Promise.all([loadGallery(), loadSellers()]);
   },
   async pwForm(f) {
     const fd = new FormData(f), j = await call('POST', '/api/account', { current: fd.get('current'), next: fd.get('next') }); if (j.error) return formErr(f, j.error);
@@ -515,7 +479,7 @@ const forms = {
     if (!confirm('Delete your account permanently? This cannot be undone.')) return;
     const j = await call('DELETE', '/api/account', { password: new FormData(f).get('password') }); if (j.error) return formErr(f, j.error);
     S.user = null; S.unread = 0; S.alerts = 0; renderUser(); updateBadge(); closeDyn(); connectStream();
-    await Promise.all([loadGigs(), loadSellers()]); if (!prof.hidden) go('/'); toast('Account deleted', 'Your data has been removed');
+    await Promise.all([loadGallery(), loadSellers()]); if (!prof.hidden) go('/'); toast('Account deleted', 'Your data has been removed');
   },
   async mfaStartForm(f) {
     const j = await call('POST', '/api/2fa/setup', { password: new FormData(f).get('password') }); if (j.error) return formErr(f, j.error);
@@ -538,8 +502,8 @@ async function saveSeller(f, btn) {
   const data = Object.fromEntries(new FormData(f)), isNew = f.id === 'sellForm', label = btn.textContent; errBox(''); busy(btn, true);
   if (isNew) { data.accent = Math.floor(Math.random() * 8); data.avatar = Math.floor(Math.random() * 12); }
   const j = await call('POST', '/api/seller', data); if (j.error) { busy(btn, false, label); return errBox(j.error); }
-  S.user = { ...S.user, ...j.user }; renderUser(); await Promise.all([loadGigs(), loadSellers()]); rerender();
-  if (isNew) { toast('Your artist page is live', location.host + '/@' + j.user.seller.handle); openDash('work'); return; }
+  S.user = { ...S.user, ...j.user }; renderUser(); await Promise.all([loadGallery(), loadSellers()]); rerender();
+  if (isNew) { toast(j.user.artist === 'approved' ? 'Your artist page is live' : 'Application sent', j.user.artist === 'approved' ? location.host + '/@' + j.user.seller.handle : 'Add some work while an admin reviews it'); dashTab = 'work'; openDash('work'); return; }
   busy(btn, false, label); toast('Page updated', 'Your changes are live');
   if (!prof.hidden && location.pathname !== '/@' + j.user.seller.handle) go('/@' + j.user.seller.handle, true);
 }
@@ -548,7 +512,7 @@ dyn.addEventListener('submit', async e => {
   if (f.classList.contains('ord-form') || f.classList.contains('ord-review')) {
     const review = f.classList.contains('ord-review'), fd = new FormData(f);
     const j = review ? await call('POST', `/api/orders/${f.dataset.order}/review`, { rating: fd.get('rating'), text: fd.get('text') })
-      : await call('POST', `/api/orders/${f.dataset.order}/action`, { action: f.dataset.action, note: fd.get('note') });
+      : await call('POST', `/api/orders/${f.dataset.order}/action`, { action: f.dataset.action, note: fd.get('note'), price: fd.get('price'), days: fd.get('days') });
     if (j.error) return formErr(f, j.error);
     toast(review ? 'Review posted' : 'Order updated'); return loadOrders();
   }
@@ -556,8 +520,5 @@ dyn.addEventListener('submit', async e => {
 });
 dyn.addEventListener('click', async e => {
   const da = e.target.closest('[data-delart]');
-  if (da) { if (!confirm('Delete this artwork? Listings using it will lose their cover.')) return; const r = await call('DELETE', '/api/art/' + da.dataset.delart); if (r.error) return toast(r.error, '', 'err'); artCache.delete(S.user.seller.handle); await Promise.all([loadGigs(), loadSellers(), refreshMe()]); rerender(); openDash('work'); return toast('Artwork deleted'); }
-  const del = e.target.closest('[data-delgig]'); if (!del || !confirm("Delete this listing? This can't be undone.")) return;
-  const j = await call('DELETE', '/api/gigs/' + del.dataset.delgig); if (j.error) return toast(j.error, '', 'err');
-  await Promise.all([loadGigs(), loadSellers()]); rerender(); paintTab('gigs'); toast('Listing deleted');
+  if (da) { if (!confirm('Delete this artwork?')) return; const r = await call('DELETE', '/api/art/' + da.dataset.delart); if (r.error) return toast(r.error, '', 'err'); sellerWorks.delete(S.user.seller.handle); await Promise.all([loadGallery(), loadSellers(), refreshMe()]); rerender(); openDash('work'); return toast('Artwork deleted'); }
 });

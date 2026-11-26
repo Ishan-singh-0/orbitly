@@ -10,6 +10,14 @@ node server.js          # http://localhost:5180
 npm run check           # syntax-check every file
 ```
 
+## How it works now
+
+- **Customers order custom work.** They pick what they own (or "Something else"), choose an artist, add inspiration pictures and links in the Inspiration tab, and describe the job. The artist replies with a quote; work starts only after the customer accepts.
+- **Artists showcase their creations.** No fixed-price listings in the interface. Their work appears on their page and in the gallery.
+- **Admins approve artists.** Anyone can apply; a page is private until approved at `/admin` → Artist approvals.
+- **Help assistant.** Rule-based and runs in the browser (not an AI model). It answers questions about the site and looks up artists and your own orders.
+- **Motion.** The home page rotates through six products; scroll, hover and order animations are switched off for people who ask for reduced motion.
+
 ## Demo accounts
 
 When you run it locally (not in production) the first start creates three labelled demo accounts, so you can see every side of the site without signing up. The login window shows them as one-click buttons.
@@ -17,7 +25,7 @@ When you run it locally (not in production) the first start creates three labell
 | Role | Email | Password | What you see |
 | --- | --- | --- | --- |
 | Buyer | buyer@tweakd.demo | Buyer-Demo-2026 | Browse, customise, order, review |
-| Artist | artist@tweakd.demo | Artist-Demo-2026 | Portfolio, listings, and one open request to accept |
+| Artist | artist@tweakd.demo | Artist-Demo-2026 | Showcase and one custom request waiting for a quote |
 | Admin | admin@tweakd.demo | Admin-Demo-2026 | The management console at `/admin` |
 
 On a public showcase (`DEMO_SEED=1` in production) the three demo accounts are shared, so their login details can't be changed or deleted and the demo admin is read-only.
