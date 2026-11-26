@@ -4,7 +4,7 @@
   "description": "Custom products by artists. Pick a product, a colour and an artwork.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F6F4EF",
-  "theme_color": "#F6F4EF",
+  "background_color": "#F2E8D5",
+  "theme_color": "#F2E8D5",
   "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }

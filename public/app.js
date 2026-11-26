@@ -165,7 +165,7 @@ function toast(msg, sub = '', kind = 'ok') {
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
   $('#themeBtn').innerHTML = ic(theme === 'dark' ? 'sun' : 'moon');
-  $('meta[name=theme-color]').content = theme === 'dark' ? '#0B0C10' : '#F6F4EF';
+  $('meta[name=theme-color]').content = theme === 'dark' ? '#0C0C0F' : '#F2E8D5';
   store.set('theme', theme);
 }
 setTheme(store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));

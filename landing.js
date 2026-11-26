@@ -5,7 +5,7 @@ const REPO_URL = 'https://github.com/Ishan-singh-0/orbitly';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (s, r = document) => r.querySelector(s);
-const BG = ['#ECE9E2', '#E4EAF2', '#F2E6E4', '#E3EEE6'];
+const BG = ['#EADCC2', '#E4EAF2', '#F2E6E4', '#E3EEE6'];
 
 document.querySelectorAll('[data-live]').forEach(a => { if (LIVE_URL) { a.href = LIVE_URL; a.hidden = false; } });
 document.querySelectorAll('[data-repo]').forEach(a => { a.href = REPO_URL; });
