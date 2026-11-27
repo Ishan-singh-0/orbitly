@@ -46,7 +46,7 @@ function paintRequest() {
     body = `
     <p class="req-q">Tell them the details</p>
     <label class="field"><span>What do you want done?</span><textarea name="brief" rows="5" maxlength="1500" placeholder="The idea, any names or text, where on the item, and anything to avoid.">${esc(R.brief)}</textarea></label>
-    <div class="row2"><label class="field"><span>Budget in USD <em class="opt">(optional)</em></span><input name="budget" type="number" min="0" max="5000" value="${esc(R.budget)}" placeholder="30"></label><label class="field"><span>Needed by <em class="opt">(optional)</em></span><input name="deadline" type="date" min="${new Date().toISOString().slice(0, 10)}" value="${esc(R.deadline)}"></label></div>
+    <div class="row2"><label class="field"><span>Budget in ₹ <em class="opt">(optional)</em></span><input name="budget" type="number" min="0" max="500000" value="${esc(R.budget)}" placeholder="1500"></label><label class="field"><span>Needed by <em class="opt">(optional)</em></span><input name="deadline" type="date" min="${new Date().toISOString().slice(0, 10)}" value="${esc(R.deadline)}"></label></div>
     <div class="req-sum"><span class="req-sum-art">${p ? mockup(p.id, (p.colors.find(c => c[0] === R.color) || p.colors[0])[1], '') : '<span class="req-plus">+</span>'}</span><div><b>${esc(R.item || 'Your item')}</b><small>${esc([p?.name || (R.product ? 'Custom item' : 'Nothing chosen yet'), R.color, artist ? 'for ' + artist.name : 'no artist chosen', R.pics.length ? plural(R.pics.length, 'picture') : ''].filter(Boolean).join(' · '))}</small></div></div>
     <p class="req-note">The artist replies with a price and delivery time. Nothing starts, and nothing is charged, until you accept.</p>`;
   }

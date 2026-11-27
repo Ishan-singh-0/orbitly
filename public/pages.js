@@ -46,14 +46,13 @@ const PAGES = {
       <li><b>Contact form:</b> your name, email and message if you write to us.</li>
       <li><b>Technical and security data:</b> your IP address is used in memory to prevent abuse (for example, rate limiting sign-in attempts). Security events such as failed sign-ins, password resets and account deletions may be written to our server logs together with an IP address or account ID, and are kept only as long as needed to protect the service.</li></ul>
       <h2>3. Cookies and local storage</h2>
-      <p>We use one cookie, <span class="mono">sid</span> (or <span class="mono">__Host-sid</span> on HTTPS), which keeps you signed in. It is strictly necessary, HttpOnly, and expires after 14 days. We also store a few preferences in your browser's local storage (theme and currency). These never leave your device.</p>
+      <p>We use one cookie, <span class="mono">sid</span> (or <span class="mono">__Host-sid</span> on HTTPS), which keeps you signed in. It is strictly necessary, HttpOnly, and expires after 14 days. We also store a few preferences in your browser's local storage (for example your theme). These never leave your device.</p>
       <p>We do not use advertising cookies, analytics trackers or fingerprinting.</p>
       <h2>4. Third parties</h2>
       <ul><li><b>Stripe</b> processes card payments when online payment is turned on. It receives the amount, order description and your email address, and is subject to its own privacy policy.</li>
       <li><b>Fonts</b> are hosted on our own servers, so your browser doesn't contact Google or any other font provider.</li>
       <li><b>Email delivery:</b> when email is enabled we use a transactional email provider to send verification, password-reset and new-message emails. It receives your email address and name for that purpose only.</li>
       <li><b>Security check:</b> the check on sign-up and contact forms runs in your browser and on our own server. It uses no third-party service and sets no cookies.</li>
-      <li><b>ExchangeRate-API:</b> our server fetches currency rates from this service. No user data is sent.</li>
       <li><b>Our hosting provider</b> processes data on our behalf to serve the site.</li></ul>
       <h2>Emails we send</h2>
       <p>We send emails only to confirm your address, reset your password if you ask, and (if you leave this on) to tell you about new messages when you're offline. Message emails never contain the message itself and can be switched off in Account settings.</p>

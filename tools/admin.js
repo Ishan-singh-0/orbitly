@@ -20,12 +20,12 @@ async function call(method, path, body) {
   const j = await r.json().catch(() => ({})); if (!r.ok) { console.error(`Error ${r.status}: ${j.error || 'request failed'}`); process.exit(1); } return j;
 }
 const when = t => new Date(t).toISOString().replace('T', ' ').slice(0, 16);
-const usd = cents => '$' + (cents / 100).toFixed(2);
+const inr = paise => '₹' + (paise / 100).toLocaleString('en-IN');
 (async () => {
   if (cmd === 'overview') {
     const j = await call('GET', '/api/admin/overview'); console.log('COUNTS', j.counts);
     console.log('\nNEWEST USERS'); j.users.slice(0, 15).forEach(u => console.log(`  ${u.id}  ${u.name} <${u.email}> ${u.handle ? '@' + u.handle : ''}${u.banned ? '  [BANNED]' : ''}${u.verified ? '' : '  [unverified]'}`));
-    console.log('\nNEWEST LISTINGS'); j.services.slice(0, 15).forEach(g => console.log(`  #${g.id}  $${g.price}  ${g.title}  (owner ${g.owner})`));
+    console.log('\nNEWEST LISTINGS'); j.services.slice(0, 15).forEach(g => console.log(`  #${g.id}  ₹${g.price}  ${g.title}  (owner ${g.owner})`));
   } else if (cmd === 'reports') {
     const j = await call('GET', '/api/admin/overview'); if (!j.contact.length) return console.log('No messages.');
     j.contact.forEach(c => console.log(`#${c.id}  ${when(c.created)}  ${c.name} <${c.email}>\n   Subject: ${c.subject || '(none)'}\n   ${c.message.replace(/\n/g, '\n   ')}\n`));
@@ -36,7 +36,7 @@ const usd = cents => '$' + (cents / 100).toFixed(2);
   else if (cmd === 'payments') {
     const j = await call('GET', '/api/admin/orders'); if (!j.orders.length) return console.log('No paid orders yet.');
     console.log(`Platform fee: ${j.feePercent}%\n`);
-    j.orders.forEach(o => console.log(`#${o.id}  ${o.pay.toUpperCase().padEnd(8)} ${o.status.padEnd(11)} paid ${usd(o.totalCents)}  fee ${usd(o.fee)}  owed ${usd(o.payout)}  ${o.seller}  pay to: ${o.payoutTo || '(none given)'}  ${o.payoutDone ? 'PAID OUT ' + when(o.payoutDone) : o.pay === 'paid' && o.status === 'completed' ? '<-- ready to pay out' : ''}`));
+    j.orders.forEach(o => console.log(`#${o.id}  ${o.pay.toUpperCase().padEnd(8)} ${o.status.padEnd(11)} paid ${inr(o.totalCents)}  fee ${inr(o.fee)}  owed ${inr(o.payout)}  ${o.seller}  pay to: ${o.payoutTo || '(none given)'}  ${o.payoutDone ? 'PAID OUT ' + when(o.payoutDone) : o.pay === 'paid' && o.status === 'completed' ? '<-- ready to pay out' : ''}`));
   }
   else if (cmd === 'payout') { if (!arg) return console.error('Need an order id.'); console.log(await call('POST', `/api/admin/orders/${arg}/payout`, {})); }
   else if (cmd === 'refund') { if (!arg) return console.error('Need an order id.'); console.log(await call('POST', `/api/admin/orders/${arg}/refund`, {})); }

@@ -29,23 +29,21 @@ const FAQ = [
   ['How do you protect my account?', 'Passwords are hashed, you can switch on two-factor login with an authenticator app, and sign-ups go through a short automatic security check. You can see and sign out your devices in Account settings.'],
   ['Can I export or delete my data?', 'Yes. Open Account settings from your account menu to download your data or delete your account.']
 ];
-const SYM = { USD: '$', INR: '₹', EUR: '€', GBP: '£' };
 const HOME_TITLE = 'Tweak’d — Your things, customised by artists';
 const HOME_DESC = 'Get your bag, mouse, hoodie or anything else customised by artists. Share your inspiration, get a quote, and make it yours.';
 
 // ---------------------------------------------------------------- state
 
 const S = {
-  cur: store.get('cur', 'USD'), q: '', shown: 12,
+  q: '', shown: 12,
   user: null, unread: 0, alerts: 0, cfg: null, v: 0, sellers: [], online: new Set(),
   place: '',
-  stats: { members: 0, sellers: 0, services: 0, online: 0 }, places: [],
-  rates: { USD: 1, INR: 83, EUR: 0.92, GBP: 0.79 }
+  stats: { members: 0, sellers: 0, services: 0, online: 0 }, places: []
 };
 let G = [];                     // artwork in the gallery
 let pending = null;             // action to run after the user logs in
 let ready;                      // resolves once the first data load finishes
-const money = n => SYM[S.cur] + Math.round(n * (S.rates[S.cur] || 1)).toLocaleString(S.cur === 'INR' ? 'en-IN' : 'en-US');
+const money = n => '₹' + Math.round(n || 0).toLocaleString('en-IN'); // all amounts are in rupees
 const stars = (n = 5) => `<span class="stars">${ic('star', 'fill').repeat(n)}</span>`;
 const avE = (seed, cls = '', handle = '') => `<span class="avatar ${cls}${handle && S.online.has(handle) ? ' on' : ''}"${handle ? ` data-ph="${esc(handle)}"` : ''}>${avatar(seed)}</span>`;
 
@@ -108,11 +106,10 @@ async function loadMe() {
 // ---------------------------------------------------------------- live updates (server-sent events)
 
 function applyState(st) {
-  S.stats = st.stats; S.places = st.places || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
+  S.stats = st.stats; S.places = st.places || []; S.online = new Set(st.online); S.cfg = st.config;
   presence(); renderStats(); renderHeroMeta(); renderProof(); renderPlaces();
   if (faqPay !== !!S.cfg?.payments) { faqPay = !!S.cfg?.payments; renderFaq(); }
   $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Tweak’d'}`;
-  $('#cur').title = st.rates?.updated ? 'Live exchange rates, updated ' + new Date(st.rates.updated).toLocaleString() : 'Approximate exchange rates';
   if (st.v !== S.v) {
     const firstLoad = S.v === 0; S.v = st.v;
     if (!firstLoad) { loadGallery(); loadSellers(); rerender(); }
@@ -305,8 +302,6 @@ function clearFilter(kind) {
 }
 function setQuery(q) { S.q = q; S.shown = 12; $('#heroIn').value = q; $('#heroClear').classList.toggle('show', !!q); renderGallery(); goHash('gallery'); }
 $('#moreBtn').onclick = () => { S.shown += 8; renderGallery(); };
-$('#cur').value = S.cur;
-$('#cur').onchange = e => { S.cur = e.target.value; store.set('cur', S.cur); rerender(); };
 
 // ---------------------------------------------------------------- hero search
 
