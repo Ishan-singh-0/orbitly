@@ -3,7 +3,7 @@
 
 const TOUR_STEPS = [
   ['.logo', 'Welcome to Tweak’d', 'Here you get your own things customised by artists. This tour takes under a minute. The logo always brings you home.'],
-  ['.hero-cta [data-act="request"]', 'Start an order', 'Press this, pick what you own, add your inspiration pictures and notes, and send it to an artist.'],
+  ['.hero-cta [data-act="request"]', 'Start an order', 'Press this, pick what you own, add your reference files and notes, and send it to an artist.'],
   ['#heroArt', 'Preview ideas', 'This rotates through products. Tap a product or a colour to try it, then “Customise mine”.'],
   ['#cats .sec-head', 'Pick your thing', 'Scroll here to choose a product. If yours isn’t listed, choose “Something else”.'],
   ['#gallery .sec-head', 'See the artists’ work', 'A showcase of real pieces. Like a style? Order in that style, or open the artist’s page.'],

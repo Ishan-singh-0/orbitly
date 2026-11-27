@@ -21,9 +21,9 @@ const CAT_SHORT = Object.fromEntries(PRODUCT_GROUPS.map(g => [g.id, g.name]));
 const prodById = id => PRODUCTS.find(p => p.id === id);
 const FAQ = [
   ['What is Tweak’d?', 'A place to get your own things customised by artists. Bring a bag, a mouse, a hoodie or anything else, share what inspires you, and an artist makes it yours.'],
-  ['How do I place an order?', 'Press "Customise my item". Pick what you have, choose an artist, add inspiration pictures and notes, and send it. The artist replies with a quote. Nothing starts until you accept it.'],
+  ['How do I place an order?', 'Press "Customise my item". Pick what you have, choose an artist, add reference files and notes, and send it. The artist replies with a quote. Nothing starts until you accept it.'],
   ['Do I have to buy a finished product?', 'No. Tweak’d is for customising something you already own or want made your way. Artists show their work as a showcase so you can choose whose style you like.'],
-  ['What goes in the inspiration tab?', 'Up to six pictures, links to things you like, and optionally one piece from the artist’s showcase. Only you, that artist and Tweak’d admins can see your pictures.'],
+  ['What can I send as references?', 'Up to six pictures or PDFs with your request (you can add more while the order is open, ten in all), links to things you like, and optionally one piece from the artist’s showcase. Only you, that artist and Tweak’d admins can see your files.'],
   ['How does payment work?', () => S.cfg?.payments ? 'After you accept a quote, you pay through a secure Stripe checkout. Tweak’d never sees your card details, and holds the payment until you approve the finished work.' : "Online payment isn't switched on for this site yet. You and the artist arrange payment directly. Don't pay in full upfront to someone you don't know, and never share card or bank details in messages."],
   ['How do I become an artist?', 'Create an account, choose "Apply to be an artist" and fill in your page. An admin reviews each application. Once approved, your page goes public and you can receive orders.'],
   ['How do you protect my account?', 'Passwords are hashed, you can switch on two-factor login with an authenticator app, and sign-ups go through a short automatic security check. You can see and sign out your devices in Account settings.'],

@@ -1,7 +1,7 @@
 // The custom order form: three tabs (your item, inspiration, details). Everything typed is kept in R while you move between tabs.
 
 let R = null;
-const REQ_TABS = ['Your item', 'Inspiration', 'Details'];
+const REQ_TABS = ['Your item', 'References', 'Details'];
 const freshRequest = () => ({ step: 0, shown: -1, product: '', color: '', item: '', handle: '', reference: '', brief: '', links: '', budget: '', deadline: '', pics: [], artists: [], works: [] });
 
 async function openRequest(preset = {}) {
@@ -37,8 +37,8 @@ function paintRequest() {
     <label class="field"><span>Artist</span><select name="handle"><option value="">Choose an artist</option>${R.artists.map(a => `<option value="${esc(a.handle)}" ${a.handle === R.handle ? 'selected' : ''}>${esc(a.name)}${a.place ? ' · ' + esc(a.place) : ''}</option>`).join('')}</select></label>`;
   if (R.step === 1) body = `
     <p class="req-q">Show the artist what you have in mind</p>
-    <label class="drop" id="drop"><input type="file" id="inspFile" accept="image/png,image/jpeg,image/webp" multiple hidden><span class="drop-ic">${ic('upright')}</span><b>Drop pictures here, or click to choose</b><small>Up to 6 images: sketches, screenshots, a photo of your item. Only you and your artist can see them.</small></label>
-    <div class="req-pics" id="reqPics">${R.pics.map(x => `<figure><img src="${x.url}" alt="Inspiration"><button type="button" data-unpic="${x.id}" aria-label="Remove image">${ic('x')}</button></figure>`).join('')}</div>
+    <label class="drop" id="drop"><input type="file" id="inspFile" accept="${REF_TYPES}" multiple hidden><span class="drop-ic">${ic('upright')}</span><b>Drop reference files here, or click to choose</b><small>Up to 6 pictures or PDFs: sketches, screenshots, a photo of your item, a mood board. PDFs up to 5 MB. Only you, your artist and Tweak’d admins can see them.</small></label>
+    <div class="req-pics" id="reqPics">${R.pics.map(x => `<figure>${x.pdf ? `<span class="ref-pdf"><b>PDF</b><small>${esc(x.name)}</small></span>` : `<img src="${x.url}" alt="${esc(x.name)}">`}<button type="button" data-unpic="${x.id}" aria-label="Remove file">${ic('x')}</button></figure>`).join('')}</div>
     <label class="field"><span>Links <em class="opt">(optional, one per line)</em></span><textarea name="links" rows="3" maxlength="1000" placeholder="https://… a pin, a post, a song cover">${esc(R.links)}</textarea></label>
     <div class="field"><span>Style from this artist’s showcase <em class="opt">(optional)</em></span><div class="cz-art">${R.works.length ? `<label class="art-opt"><input type="radio" name="reference" value="" ${R.reference ? '' : 'checked'}><span class="art-none">No preference</span></label>` + R.works.map(w => `<label class="art-opt"><input type="radio" name="reference" value="${esc(w.id)}" ${R.reference === w.id ? 'checked' : ''}><img src="${esc(w.url)}" alt="${esc(w.title)}" title="${esc(w.title)}"></label>`).join('') : `<small>${R.handle ? 'This artist hasn’t uploaded work yet.' : 'Choose an artist on the first tab to see their work.'}</small>`}</div></div>`;
   if (R.step === 2) {
@@ -47,7 +47,7 @@ function paintRequest() {
     <p class="req-q">Tell them the details</p>
     <label class="field"><span>What do you want done?</span><textarea name="brief" rows="5" maxlength="1500" placeholder="The idea, any names or text, where on the item, and anything to avoid.">${esc(R.brief)}</textarea></label>
     <div class="row2"><label class="field"><span>Budget in ₹ <em class="opt">(optional)</em></span><input name="budget" type="number" min="0" max="500000" value="${esc(R.budget)}" placeholder="1500"></label><label class="field"><span>Needed by <em class="opt">(optional)</em></span><input name="deadline" type="date" min="${new Date().toISOString().slice(0, 10)}" value="${esc(R.deadline)}"></label></div>
-    <div class="req-sum"><span class="req-sum-art">${p ? mockup(p.id, (p.colors.find(c => c[0] === R.color) || p.colors[0])[1], '') : '<span class="req-plus">+</span>'}</span><div><b>${esc(R.item || 'Your item')}</b><small>${esc([p?.name || (R.product ? 'Custom item' : 'Nothing chosen yet'), R.color, artist ? 'for ' + artist.name : 'no artist chosen', R.pics.length ? plural(R.pics.length, 'picture') : ''].filter(Boolean).join(' · '))}</small></div></div>
+    <div class="req-sum"><span class="req-sum-art">${p ? mockup(p.id, (p.colors.find(c => c[0] === R.color) || p.colors[0])[1], '') : '<span class="req-plus">+</span>'}</span><div><b>${esc(R.item || 'Your item')}</b><small>${esc([p?.name || (R.product ? 'Custom item' : 'Nothing chosen yet'), R.color, artist ? 'for ' + artist.name : 'no artist chosen', R.pics.length ? plural(R.pics.length, 'file') : ''].filter(Boolean).join(' · '))}</small></div></div>
     <p class="req-note">The artist replies with a price and delivery time. Nothing starts, and nothing is charged, until you accept.</p>`;
   }
   box.innerHTML = `<h2>Customise your thing</h2>${tabs}<form id="orderForm" novalidate><div class="req-body${moved ? ' slide' : ''}">${body}</div><div id="reqErr"></div>
@@ -64,14 +64,20 @@ function missing() {
   return null;
 }
 
+const REF_TYPES = 'image/png,image/jpeg,image/webp,application/pdf';
+// uploads one reference file; pictures are shrunk in the browser first, PDFs are sent as they are
+async function uploadReference(file) {
+  const pdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+  if (pdf && file.size > 5 * 1024 * 1024) throw new Error('PDFs can be up to 5 MB.');
+  const body = pdf ? file : await prepareImage(file);
+  const r = await fetch('/api/inspiration?name=' + encodeURIComponent(file.name), { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body, credentials: 'same-origin' });
+  const j = await r.json().catch(() => ({ error: 'The upload failed.' })); if (j.error) throw new Error(j.error);
+  return j;
+}
 async function addPictures(files) {
   for (const file of [...files].slice(0, 6 - R.pics.length)) {
-    try {
-      const blob = await prepareImage(file);
-      const r = await fetch('/api/inspiration', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: blob, credentials: 'same-origin' });
-      const j = await r.json().catch(() => ({ error: 'The upload failed.' })); if (j.error) throw new Error(j.error);
-      R.pics.push({ id: j.id, url: j.url }); paintRequest();
-    } catch (e) { reqError(e.message || 'That file could not be used.'); }
+    try { const j = await uploadReference(file); if (!R) return; R.pics.push(j); paintRequest(); }
+    catch (e) { reqError(e.message || 'That file could not be used.'); }
   }
 }
 

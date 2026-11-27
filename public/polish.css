@@ -89,3 +89,41 @@
 
 @media (max-width: 1000px) { .nav-pill { display: none; } }
 @media (max-width: 640px) { .steps::before { left: -11px; width: 2px; } }
+
+/* ---- reference files ---- */
+.ref-pdf { display: grid; place-items: center; align-content: center; gap: 4px; width: 96px; height: 96px; padding: 8px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); text-align: center; overflow: hidden; color: inherit; }
+.ref-pdf b { font-size: .8rem; color: #fff; background: var(--pop); border-radius: 6px; padding: 2px 8px; }
+.ref-pdf small { font-size: .68rem; line-height: 1.2; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ord-insp .ref-pdf { width: 92px; height: 68px; }
+.ord-insp img { transition: scale .3s var(--ease); }
+.ord-insp a:hover img { scale: 1.08; }
+.ord-add { cursor: pointer; position: relative; }
+.ord-add.busy { opacity: .55; pointer-events: none; }
+.ord-add:focus-within { outline: 2px solid var(--pop); outline-offset: 2px; }
+/* hidden from view but still reachable with the keyboard */
+.ord-add input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+/* ---- order progress ---- */
+.ord-steps { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); position: relative; margin: 16px 0 6px; padding: 0; }
+.ord-steps::before, .ord-steps::after { content: ""; position: absolute; left: 10%; top: 6px; height: 3px; border-radius: 3px; }
+.ord-steps::before { width: 80%; background: var(--line); }
+.ord-steps::after { width: calc(80% * var(--at)); background: linear-gradient(90deg, #FF5757, #FF9A3C); }
+.ord-steps li { display: grid; justify-items: center; gap: 6px; font-size: .72rem; color: var(--muted); text-align: center; position: relative; z-index: 1; }
+.ord-steps i { width: 15px; height: 15px; border-radius: 50%; background: var(--card); border: 3px solid var(--line); }
+.ord-steps li.done i, .ord-steps li.now i { background: var(--pop); border-color: var(--pop); }
+.ord-steps li.now { color: var(--ink); font-weight: 600; }
+@media (max-width: 520px) { .ord-steps span { font-size: .62rem; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ord-steps::after { animation: step-fill 1s .2s var(--ease) both; }
+  .ord-steps li.now i { animation: step-pulse 1.8s ease-out infinite; }
+  #ordBody .ord { animation: card-in .5s var(--ease) backwards; }
+  #ordBody .ord:nth-child(2) { animation-delay: .07s; }
+  #ordBody .ord:nth-child(3) { animation-delay: .14s; }
+  #ordBody .ord:nth-child(n+4) { animation-delay: .2s; }
+  .field :is(input, textarea, select) { transition: border-color .25s, box-shadow .25s; }
+  .field :is(input, textarea, select):focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--pop) 18%, transparent); }
+}
+@keyframes step-fill { from { width: 0; } }
+@keyframes step-pulse { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pop) 55%, transparent); } to { box-shadow: 0 0 0 10px transparent; } }
+@keyframes card-in { from { opacity: 0; translate: 0 22px; } }

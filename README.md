@@ -12,7 +12,7 @@ npm run check           # syntax-check every file
 
 ## How it works now
 
-- **Customers order custom work.** They pick what they own (or "Something else"), choose an artist, add inspiration pictures and links in the Inspiration tab, and describe the job. The artist replies with a quote; work starts only after the customer accepts.
+- **Customers order custom work.** They pick what they own (or "Something else"), choose an artist, add reference files (pictures and PDFs, with more allowed while the order is open) and links, and describe the job. The artist replies with a quote; work starts only after the customer accepts.
 - **Artists showcase their creations.** No fixed-price listings in the interface. Their work appears on their page and in the gallery.
 - **Admins approve artists.** Anyone can apply; a page is private until approved at `/admin` → Artist approvals.
 - **Help assistant.** Rule-based and runs in the browser (not an AI model). It answers questions about the site and looks up artists and your own orders.

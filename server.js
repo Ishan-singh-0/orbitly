@@ -387,7 +387,10 @@ const sellerStats = uid => { const rs = db.reviews.filter(r => r.seller === uid)
 const gigStats = id => { const rs = db.reviews.filter(r => r.gig === id); return { rating: avg(rs), reviews: rs.length }; };
 const alertsFor = uid => db.orders.filter(o => (o.seller === uid && (o.status === 'requested' || o.status === 'in_progress')) || (o.buyer === uid && (o.status === 'delivered' || o.status === 'quoted'))).length;
 const reviewsFor = uid => db.reviews.filter(r => r.seller === uid).slice(-30).reverse().map(r => { const b = db.users.find(x => x.id === r.buyer), g = db.gigs.find(x => x.id === r.gig), n = (b?.name || 'Former member').split(' '); return { rating: r.rating, text: r.text, created: r.created, service: g?.title || db.orders.find(o => o.id === r.order)?.gigTitle || 'a service', buyer: n.length > 1 ? `${n[0]} ${n[n.length - 1][0]}.` : n[0] }; });
-const orderOut = (o, uid) => { const peerId = o.buyer === uid ? o.seller : o.buyer, p = db.users.find(x => x.id === peerId), rv = db.reviews.find(r => r.order === o.id); return { id: o.id, gigId: o.gigId, gigTitle: o.gigTitle, kind: o.kind || 'listing', item: o.item || '', budget: o.budget || 0, deadline: o.deadline || '', links: o.links || [], quoteNote: o.quoteNote || '', inspiration: (o.inspiration || []).map(id => '/api/inspiration/' + id), price: o.price, qty: o.qty || 1, total: o.total || o.price, product: o.product || '', options: o.options || {}, artworkUrl: o.options?.artwork ? (db.art.find(a => a.id === o.options.artwork) ? '/uploads/' + db.art.find(a => a.id === o.options.artwork).file : '') : '', pay: o.pay || 'unpaid', canPay: PAY_ON && o.buyer === uid && (o.pay || 'unpaid') === 'unpaid' && ['in_progress', 'delivered'].includes(o.status) && (o.total || o.price) > 0, days: o.days, status: o.status, created: o.created, updated: o.updated, role: o.buyer === uid ? 'buyer' : 'seller', peer: p ? peerOut(p) : { id: peerId, name: 'Former member', handle: '', avatar: null, accent: 0 }, brief: o.brief || '', delivery: o.delivery || '', review: rv ? { rating: rv.rating, text: rv.text } : null }; };
+const orderOut = (o, uid) => { const peerId = o.buyer === uid ? o.seller : o.buyer, p = db.users.find(x => x.id === peerId), rv = db.reviews.find(r => r.order === o.id); return { id: o.id, gigId: o.gigId, gigTitle: o.gigTitle, kind: o.kind || 'listing', item: o.item || '', budget: o.budget || 0, deadline: o.deadline || '', links: o.links || [], quoteNote: o.quoteNote || '', inspiration: (o.inspiration || []).map(id => '/api/inspiration/' + id), files: (o.inspiration || []).map(refOut).filter(Boolean), price: o.price, qty: o.qty || 1, total: o.total || o.price, product: o.product || '', options: o.options || {}, artworkUrl: o.options?.artwork ? (db.art.find(a => a.id === o.options.artwork) ? '/uploads/' + db.art.find(a => a.id === o.options.artwork).file : '') : '', pay: o.pay || 'unpaid', canPay: PAY_ON && o.buyer === uid && (o.pay || 'unpaid') === 'unpaid' && ['in_progress', 'delivered'].includes(o.status) && (o.total || o.price) > 0, days: o.days, status: o.status, created: o.created, updated: o.updated, role: o.buyer === uid ? 'buyer' : 'seller', peer: p ? peerOut(p) : { id: peerId, name: 'Former member', handle: '', avatar: null, accent: 0 }, brief: o.brief || '', delivery: o.delivery || '', review: rv ? { rating: rv.rating, text: rv.text } : null }; };
+// a buyer's reference file (picture or PDF), as the order screens need it
+const refOut = id => { const a = db.inspo.find(x => x.id === id); return a && { url: '/api/inspiration/' + a.id, name: a.name || 'Reference', pdf: a.file.endsWith('.pdf') }; };
+const MAX_ORDER_FILES = 10;
 const isOnline = uid => [...clients].some(c => c.uid === uid);
 const sellerOut = u => ({ handle: u.seller.handle, name: u.name, headline: u.seller.headline, category: u.seller.category, bio: u.seller.bio, location: u.seller.location || '', languages: u.seller.languages || [], skills: u.seller.skills || [], website: u.seller.website || '', instagram: u.seller.instagram || '', contactOnly: !!u.contactOnly, country: u.seller.country || '', place: placeOf(u.seller), works: db.art.filter(a => a.owner === u.id).length, accent: u.seller.accent || 0, avatar: u.seller.avatar || 0, since: u.seller.since, services: db.gigs.filter(g => g.owner === u.id).length, online: isOnline(u.id), ...sellerStats(u.id) });
 const unreadFor = uid => db.messages.filter(m => m.to === uid && !m.read).length;
@@ -718,6 +721,25 @@ async function api(req, res, url) {
     return send(res, 200, { ok: true, order: orderOut(o, u.id) });
   }
 
+  /* the buyer can send more reference files while the order is still open */
+  const more = p.match(/^\/api\/orders\/(\d+)\/references$/);
+  if (more && m === 'POST') {
+    if (limited('ord:' + u.id, 60, 3600e3)) return fail(res, 429, 'Slow down a little.');
+    const o = db.orders.find(x => x.id === +more[1] && x.buyer === u.id); if (!o) return fail(res, 404, 'Order not found.');
+    if (['completed', 'declined', 'cancelled'].includes(o.status)) return fail(res, 409, 'This order is closed.');
+    const b = await readBody(req), ids = [...new Set(Array.isArray(b.files) ? b.files.map(String) : [])];
+    const added = ids.map(i => db.inspo.find(x => x.id === i && x.owner === u.id && !x.order));
+    if (!ids.length || added.some(x => !x)) return fail(res, 400, 'Choose a file to add.');
+    const have = (o.inspiration || []).length;
+    if (have + added.length > MAX_ORDER_FILES) return fail(res, 400, `An order can hold ${MAX_ORDER_FILES} reference files. You can add ${Math.max(0, MAX_ORDER_FILES - have)} more.`);
+    const now = Date.now(); o.inspiration = [...(o.inspiration || []), ...ids]; o.updated = now; added.forEach(x => { x.order = o.id; });
+    const what = added.length === 1 ? 'a reference file' : added.length + ' reference files';
+    db.messages.push({ id: db.nextMsg++, from: u.id, to: o.seller, text: `${u.name} added ${what}.`, kind: 'system', orderId: o.id, created: now, read: false });
+    save(); bump(); audit('order_references', { order: o.id, user: u.id });
+    for (const id of [u.id, o.seller]) notifyUser(id, 'order', { id: o.id, status: o.status, text: id === u.id ? 'Files sent' : `${u.name.split(' ')[0]} added ${what}`, alerts: alertsFor(id), unread: unreadFor(id), peer: id === u.id ? o.seller : u.id, self: id === u.id });
+    return send(res, 200, { ok: true, order: orderOut(o, u.id) });
+  }
+
   /* payment: send the buyer to Stripe's hosted checkout. Card details never touch this server. */
   const pay = p.match(/^\/api\/orders\/(\d+)\/pay$/);
   if (pay && m === 'POST') {
@@ -733,22 +755,28 @@ async function api(req, res, url) {
     } catch (e) { audit('stripe_error', { order: o.id, msg: e.message }); return fail(res, 502, "We couldn't reach the payment provider. Please try again in a moment."); }
   }
 
-  /* inspiration images for a custom order: private to the buyer, the chosen artist and admins */
+  /* reference files for a custom order (pictures and PDFs): private to the buyer, the chosen artist and admins */
   if (p === '/api/inspiration' && m === 'POST') {
     if (needVerify(res, u)) return;
     if (limited('insp:' + u.id, 30, 3600e3)) return fail(res, 429, 'Too many uploads. Try again later.');
-    if (db.inspo.filter(a => a.owner === u.id && !a.order).length >= 12) return fail(res, 400, 'You have too many unsent images. Remove some first.');
-    const raw = await readRaw(req, 1.5 * 1024 * 1024), kind = imageKind(raw); if (!kind) return fail(res, 400, 'Upload a JPG, PNG or WebP image.');
+    if (db.inspo.filter(a => a.owner === u.id && !a.order).length >= 12) return fail(res, 400, 'You have too many unsent files. Remove some first.');
+    const raw = await readRaw(req, 5 * 1024 * 1024), image = imageKind(raw), kind = image || (raw.subarray(0, 5).toString('latin1') === '%PDF-' ? 'pdf' : null);
+    if (!kind) return fail(res, 400, 'Upload a JPG, PNG or WebP image, or a PDF.');
+    if (image && raw.length > 1.5 * 1024 * 1024) return fail(res, 413, 'That image is too large.');
+    const name = clean(url.searchParams.get('name'), 80).replace(/[^\p{L}\p{N} ._()-]/gu, '') || 'Reference';
     const id = crypto.randomBytes(16).toString('hex'), file = `i-${id}.${kind}`;
     fs.writeFileSync(path.join(UP_DIR, file), raw, { mode: 0o600 });
-    db.inspo.push({ id, owner: u.id, file, order: null, created: Date.now() }); save(); return send(res, 201, { id, url: '/api/inspiration/' + id });
+    db.inspo.push({ id, owner: u.id, file, name, order: null, created: Date.now() }); save(); return send(res, 201, { id, url: '/api/inspiration/' + id, name, pdf: kind === 'pdf' });
   }
   const insp = p.match(/^\/api\/inspiration\/([a-f0-9]{32})$/);
   if (insp) {
     const a = db.inspo.find(x => x.id === insp[1]), o = a?.order && db.orders.find(x => x.id === a.order);
     if (!a || !(a.owner === u.id || o?.seller === u.id || u.admin)) return fail(res, 404, 'Not found.');
-    if (m === 'GET') { res.writeHead(200, { 'Content-Type': 'image/' + (a.file.endsWith('jpg') ? 'jpeg' : a.file.split('.').pop()), 'Cache-Control': 'private, no-store', 'Content-Security-Policy': "default-src 'none'; sandbox" }); return fs.createReadStream(path.join(UP_DIR, a.file)).on('error', () => res.end()).pipe(res); }
-    if (m === 'DELETE') { if (a.owner !== u.id || a.order) return fail(res, 403, 'That image is part of a sent request.'); db.inspo.splice(db.inspo.indexOf(a), 1); try { fs.unlinkSync(path.join(UP_DIR, a.file)); } catch {} save(); return send(res, 200, { ok: true }); }
+    if (m === 'GET') { const pdf = a.file.endsWith('.pdf'), head = { 'Content-Type': pdf ? 'application/pdf' : 'image/' + (a.file.endsWith('jpg') ? 'jpeg' : a.file.split('.').pop()), 'Cache-Control': 'private, no-store', 'Content-Security-Policy': "default-src 'none'; sandbox" };
+      // PDFs are always downloaded, never opened inside the site
+      if (pdf) head['Content-Disposition'] = `attachment; filename="reference-${a.id.slice(0, 8)}.pdf"`;
+      res.writeHead(200, head); return fs.createReadStream(path.join(UP_DIR, a.file)).on('error', () => res.end()).pipe(res); }
+    if (m === 'DELETE') { if (a.owner !== u.id || a.order) return fail(res, 403, 'That file is part of a sent request.'); db.inspo.splice(db.inspo.indexOf(a), 1); try { fs.unlinkSync(path.join(UP_DIR, a.file)); } catch {} save(); return send(res, 200, { ok: true }); }
   }
   if (p === '/api/requests' && m === 'POST') {
     if (needVerify(res, u)) return;
@@ -762,7 +790,7 @@ async function api(req, res, url) {
     if (brief.length < 15) return fail(res, 400, 'Tell the artist what you want (at least 15 characters).');
     const links = lines(b.links, 5, 200).filter(l => /^https?:\/\/[^\s"'<>]+\.[^\s"'<>]+$/i.test(l));
     const ids = [...new Set(Array.isArray(b.inspiration) ? b.inspiration.map(String) : [])].slice(0, 6), pics = ids.map(i => db.inspo.find(x => x.id === i && x.owner === u.id && !x.order));
-    if (pics.some(x => !x)) return fail(res, 400, 'One of the inspiration images is no longer available. Add it again.');
+    if (pics.some(x => !x)) return fail(res, 400, 'One of the reference files is no longer available. Add it again.');
     const ref = String(b.reference || ''); if (ref && !db.art.some(a => a.id === ref && a.owner === to.id)) return fail(res, 400, "That artwork isn't in this artist's portfolio.");
     if (db.orders.filter(o => o.buyer === u.id && o.seller === to.id && ['requested', 'quoted'].includes(o.status)).length >= 3) return fail(res, 409, 'You already have three requests waiting with this artist.');
     const title = `Custom ${prod ? prod.name.toLowerCase() : 'item'}: ${item}`.slice(0, 100), now = Date.now();

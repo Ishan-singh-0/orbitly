@@ -36,7 +36,7 @@ const PAGES = {
       <h2>1. Who we are</h2><p>This site is operated by ${company()}. If you have questions about this policy or your data, ${contactLine()}.</p>
       <h2>2. What we collect</h2>
       <ul><li><b>Account details:</b> your name and email address, and a securely hashed version of your password (we never store the password itself).</li>
-      <li><b>Order requests:</b> the item you describe, notes, budget, links and inspiration pictures. Pictures are visible only to you, the artist you chose and admins.</li>
+      <li><b>Order requests:</b> the item you describe, notes, budget, links and reference files (pictures and PDFs). Files are visible only to you, the artist you chose and admins.</li>
       <li><b>Artist page content:</b> if you open an artist page, the headline, bio, city, country, languages, skills, website and the images you upload. This content is public. Uploaded images are re-encoded in your browser, which removes camera metadata such as location.</li>
       <li><b>Payout details:</b> if you sell, you may tell us how to pay you (for example a UPI ID or PayPal email). Only the Tweak’d team can see it.</li>
       <li><b>Payments:</b> when online payment is on, card payments are handled entirely by Stripe on its own checkout page. We never see or store card numbers; we keep the order, amount and Stripe's payment reference.</li>

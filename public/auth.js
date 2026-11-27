@@ -313,6 +313,13 @@ function paintOrders() {
   $('#ordBody').innerHTML = list.length ? list.map(orderCard).join('')
     : `<div class="empty-s"><b>${ORD.tab === 'buying' ? 'Nothing ordered yet' : 'No requests yet'}</b>${ORD.tab === 'buying' ? 'Press “Customise my item” to send your first order.' : 'Customer requests show up here the moment they arrive.'}</div>`;
 }
+const ORD_CLOSED = ['completed', 'declined', 'cancelled'];
+const ORD_STEPS = [['requested', 'Requested'], ['quoted', 'Quoted'], ['in_progress', 'In progress'], ['delivered', 'Delivered'], ['completed', 'Completed']];
+// where the order has got to; declined and cancelled orders show their status badge only
+function orderSteps(o) {
+  const at = ORD_STEPS.findIndex(s => s[0] === o.status); if (at < 0) return '';
+  return `<ol class="ord-steps" style="--at:${at / (ORD_STEPS.length - 1)}">${ORD_STEPS.map((s, i) => `<li class="${i < at ? 'done' : i === at ? 'now' : ''}" ${i === at ? 'aria-current="step"' : ''}><i></i><span>${s[1]}</span></li>`).join('')}</ol>`;
+}
 function orderCard(o) {
   const seller = o.role === 'seller', p = o.product && prodById(o.product); let actions = '';
   const opts = [p?.name, o.options.color, o.options.size, o.qty > 1 ? 'Qty ' + o.qty : ''].filter(Boolean).map(esc).join(' · ');
@@ -330,8 +337,8 @@ function orderCard(o) {
   return `<article class="ord" data-ord="${o.id}">
     <div class="ord-h"><div><b>${esc(o.gigTitle)}</b><small>${seller ? 'Customer' : 'Artist'}: ${esc(o.peer.name)} · ${o.total ? `${money(o.total)} · ${o.days}-day delivery` : o.budget ? 'Budget ' + money(o.budget) : 'No quote yet'} · ${when(o.created)}</small></div><span class="st st-${o.status}">${ORD_STATUS[o.status]}</span></div>
     ${p ? `<div class="ord-prod"><span class="op-art">${mockup(p.id, (p.colors.find(c => c[0] === o.options.color) || p.colors[0])[1], '', { bg: '#EADCC2' })}</span><span>${opts}${payChip}</span></div>` : payChip}
-    ${o.brief ? `<p class="ord-brief">${esc(o.brief)}</p>` : ''}${o.deadline ? `<p class="ord-meta">${ic('clock')} Needed by ${new Date(o.deadline + 'T00:00').toLocaleDateString()}</p>` : ''}${o.inspiration.length || o.links.length ? `<div class="ord-insp"><b>Inspiration</b><div>${o.inspiration.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Inspiration"></a>`).join('')}</div>${o.links.map(l => `<a class="ulink" href="${esc(l)}" target="_blank" rel="nofollow noopener noreferrer">${esc(l)}</a>`).join('')}</div>` : ''}${o.quoteNote ? `<div class="ord-del"><b>Note with the quote</b><p>${esc(o.quoteNote)}</p></div>` : ''}${o.delivery ? `<div class="ord-del"><b>Delivery note</b><p>${esc(o.delivery)}</p></div>` : ''}
-    <div class="ord-act">${actions}<button class="btn btn-line btn-sm" data-open-chat="${o.peer.id}">${ic('chat')} Conversation</button></div>
+    ${o.brief ? `<p class="ord-brief">${esc(o.brief)}</p>` : ''}${o.deadline ? `<p class="ord-meta">${ic('clock')} Needed by ${new Date(o.deadline + 'T00:00').toLocaleDateString()}</p>` : ''}${o.files.length || o.links.length ? `<div class="ord-insp"><b>References</b><div>${o.files.map(f => f.pdf ? `<a class="ref-pdf" href="${esc(f.url)}" download><b>PDF</b><small>${esc(f.name)}</small></a>` : `<a href="${esc(f.url)}" target="_blank" rel="noopener"><img src="${esc(f.url)}" alt="${esc(f.name)}"></a>`).join('')}</div>${o.links.map(l => `<a class="ulink" href="${esc(l)}" target="_blank" rel="nofollow noopener noreferrer">${esc(l)}</a>`).join('')}</div>` : ''}${o.quoteNote ? `<div class="ord-del"><b>Note with the quote</b><p>${esc(o.quoteNote)}</p></div>` : ''}${o.delivery ? `<div class="ord-del"><b>Delivery note</b><p>${esc(o.delivery)}</p></div>` : ''}
+    ${orderSteps(o)}<div class="ord-act">${actions}${!seller && !ORD_CLOSED.includes(o.status) && o.files.length < 10 ? `<label class="btn btn-line btn-sm ord-add">${ic('upright')} Add reference files<input type="file" data-oref="${o.id}" data-room="${10 - o.files.length}" accept="${REF_TYPES}" multiple></label>` : ''}<button class="btn btn-line btn-sm" data-open-chat="${o.peer.id}">${ic('chat')} Conversation</button></div>
     <form class="ord-form" data-order="${o.id}" data-action="quote" hidden><div class="ferr"></div><div class="row2"><label class="field"><span>Your price (₹)</span><input name="price" type="number" min="50" max="500000" value="${o.total || o.budget || 999}"></label><label class="field"><span>Ready in (days)</span><input name="days" type="number" min="1" max="90" value="${o.days || 7}"></label></div><label class="field"><span>Note to the customer <em class="opt">(optional)</em></span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send quote</button></form>
     <form class="ord-form" data-order="${o.id}" data-action="deliver" hidden><div class="ferr"></div><label class="field"><span>Delivery note: what are you handing over, and where can they get it?</span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send delivery</button></form>
     <form class="ord-form" data-order="${o.id}" data-action="revise" hidden><div class="ferr"></div><label class="field"><span>What needs to change?</span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send request</button></form>
@@ -343,6 +350,15 @@ function onLiveOrder(d) {
   if (ORD.open) loadOrders();
   if (!d.self) { const t = toast(esc(d.text), 'Open Orders to take a look'); t.style.cursor = 'pointer'; t.onclick = () => openOrders(); }
 }
+dyn.addEventListener('change', async e => {
+  const input = e.target.closest('[data-oref]'); if (!input || !input.files.length) return;
+  const chosen = [...input.files].slice(0, +input.dataset.room), label = input.closest('label'); label.classList.add('busy');
+  try {
+    const ids = []; for (const file of chosen) ids.push((await uploadReference(file)).id);
+    const j = await call('POST', `/api/orders/${input.dataset.oref}/references`, { files: ids }); if (j.error) throw new Error(j.error);
+    toast('Files sent', 'Your artist can see them now'); await loadOrders();
+  } catch (err) { label.classList.remove('busy'); input.value = ''; toast(esc(err.message || 'That file could not be used.'), '', 'err'); }
+});
 dyn.addEventListener('click', async e => {
   const tab = e.target.closest('[data-ot]'); if (tab) { ORD.tab = tab.dataset.ot; $$('#ordTabs button').forEach(b => b.classList.toggle('on', b === tab)); return paintOrders(); }
   const payBtn = e.target.closest('[data-pay]');
