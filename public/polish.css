@@ -204,3 +204,53 @@
   .nav .logo .tw-mark { transition: width .35s var(--ease), height .35s var(--ease), transform .5s cubic-bezier(.3, 1.7, .5, 1), filter .4s; }
   .nav.scrolled .logo .tw-mark { width: 94px; height: 62px; margin-block: 0; }
 }
+
+/* ---- text pages: narrower column, labelled titles, cards ---- */
+.container.static-page { max-width: 900px; }
+.static-page.contact-page { max-width: 1100px; }
+.static-page h1 { font-size: clamp(2.8rem, 6vw, 4.8rem); position: relative; }
+.static-page h1::after { content: ""; display: block; width: 84px; height: 5px; border-radius: 5px; margin-top: 18px; background: linear-gradient(90deg, #FF5757, #FF9A3C, #FAE05A); }
+.about-page .prose ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-block: 14px 24px; }
+.about-page .prose li { margin: 0; padding: 18px 20px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; transition: translate .35s var(--ease), box-shadow .35s var(--ease), border-color .3s; }
+.about-page .prose li:hover { translate: 0 -5px; border-color: var(--pop); box-shadow: 0 22px 36px -26px rgba(0, 0, 0, .45); }
+.about-page .prose li b { display: block; margin-bottom: 4px; }
+.legal-page .prose h2 { padding-left: 14px; border-left: 4px solid var(--pop); }
+.contact-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; align-items: start; margin-top: 26px; }
+.contact-grid > * { min-width: 0; }
+.contact-grid .contact-form { margin: 0; padding: clamp(18px, 3vw, 30px); background: var(--card); border: 1px solid var(--line); border-radius: 24px; }
+.contact-side { display: grid; gap: 12px; }
+.contact-tip { display: block; position: relative; padding: 20px 52px 20px 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--card); transition: translate .35s var(--ease), border-color .3s, background .3s; }
+.contact-tip b { display: block; font-size: 1.05rem; }
+.contact-tip span { color: var(--muted); font-size: .9rem; }
+.contact-tip::after { content: "↗"; position: absolute; right: 18px; top: 50%; translate: 0 -50%; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); font-size: .85rem; transition: rotate .35s var(--ease), background .3s; }
+.contact-tip:hover { translate: -4px 0; border-color: var(--pop); }
+.contact-tip:hover::after { rotate: 45deg; background: var(--pop); }
+@media (max-width: 760px) { .contact-grid, .about-page .prose ul { grid-template-columns: 1fr; } }
+
+/* ---- questions as cards ---- */
+.faq { border: 0; display: grid; gap: 10px; }
+.qa { border: 1px solid var(--line); border-radius: 18px; background: var(--card); padding: 0 22px; transition: border-color .3s, box-shadow .35s var(--ease), translate .35s var(--ease); }
+.qa:hover { border-color: color-mix(in srgb, var(--pop) 60%, var(--line)); translate: 0 -2px; }
+.qa.open { border-color: var(--pop); box-shadow: 0 24px 40px -30px rgba(0, 0, 0, .4); }
+.qa > button { padding-block: 20px; }
+.qa.open .plus { background: var(--pop); border-color: var(--pop); color: #fff; }
+
+/* ---- log in and sign up window ---- */
+.modal:has(.seg)::before { content: ""; display: block; height: 6px; background: linear-gradient(90deg, #FF5757, #FF9A3C, #FAE05A, #8C7BFF, #FF5757) 0 0 / 200% 100%; }
+.seg { border-radius: 99px; }
+.seg button, .seg .slider { border-radius: 99px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .modal:has(.seg)::before { animation: band 5s linear infinite; }
+  .modal .seg ~ * { animation: card-in .5s var(--ease) backwards; }
+  .static-page > * { animation: card-in .6s var(--ease) backwards; }
+  .static-page > :nth-child(2) { animation-delay: .06s; }
+  .static-page > :nth-child(3) { animation-delay: .12s; }
+  .static-page > :nth-child(n+4) { animation-delay: .18s; }
+  .static-page h1::after { animation: rule-grow .8s .35s var(--ease) both; }
+  .contact-tip { animation: card-in .6s var(--ease) backwards; }
+  .contact-tip:nth-child(2) { animation-delay: .1s; }
+  .contact-tip:nth-child(3) { animation-delay: .2s; }
+}
+@keyframes band { to { background-position: -200% 0; } }
+@keyframes rule-grow { from { width: 0; } }

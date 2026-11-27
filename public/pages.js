@@ -10,7 +10,7 @@ const PAGE_META = {
 };
 const company = () => esc(S.cfg?.company || 'Tweak’d');
 const contactLine = () => S.cfg?.contactEmail ? `email <a class="ulink" href="mailto:${esc(S.cfg.contactEmail)}">${esc(S.cfg.contactEmail)}</a> or use the <a class="ulink" href="/contact" data-nav>contact form</a>` : `use the <a class="ulink" href="/contact" data-nav>contact form</a>`;
-const pageShell = (_section, title, inner, updated) => `<div class="container static-page"><h1>${title}</h1>${updated ? `<p class="updated">Last updated ${updated}</p>` : ''}<div class="prose">${inner}</div></div>`;
+const pageShell = (section, title, inner, updated) => `<div class="container static-page ${section.toLowerCase()}-page"><p class="kicker">${section}</p><h1>${title}</h1>${updated ? `<p class="updated">Last updated ${updated}</p>` : ''}<div class="prose">${inner}</div></div>`;
 
 const VERIFY_RUNS = {};
 const PAGES = {
@@ -21,7 +21,7 @@ const PAGES = {
       <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly.</p>
       <h2>What you get</h2>
       <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their showcase, story and location. Artist accounts are approved by an admin.</li>
-      <li><b>Custom orders.</b> Tell an artist what you own, share your inspiration, and get a quote before anything starts.</li>
+      <li><b>Custom orders.</b> Tell an artist what you own, share your references, and get a quote before anything starts. Send pictures or PDFs so nothing gets lost.</li>
       <li><b>Direct conversations.</b> Buyers message artists from their page. Replies arrive in real time.</li>
       <li><b>Simple orders and honest reviews.</b> Requests move from requested to delivered to completed, and only buyers who finished an order can review it.</li></ul>
       <h2>What we're upfront about</h2>
@@ -94,14 +94,19 @@ const PAGES = {
     return pageShell('Contact', 'Get in touch.', `
       <p class="big">${rep ? `You're reporting <b class="mono">/@${esc(rep)}</b>. Tell us what's wrong and we'll look into it.` : 'Questions, feedback, or something to report? Write to us and we will reply by email.'}</p>
       ${S.cfg?.contactEmail ? `<p>You can also email <a class="ulink" href="mailto:${esc(S.cfg.contactEmail)}">${esc(S.cfg.contactEmail)}</a>.</p>` : ''}
-      <form class="contact-form" id="contactForm" novalidate>
+      <div class="contact-grid"><form class="contact-form" id="contactForm" novalidate>
         <div id="cErr"></div>
         <div class="row2"><label class="field"><span>Your name</span><input name="name" maxlength="60" autocomplete="name"></label><label class="field"><span>Email</span><input name="email" type="email" maxlength="120" autocomplete="email"></label></div>
         <label class="field"><span>Subject</span><input name="subject" maxlength="100" value="${rep ? 'Report: /@' + esc(rep) : ''}"></label>
         <label class="field"><span>Message</span><textarea name="message" rows="7" maxlength="3000" placeholder="How can we help?"></textarea></label>
         <input class="hp" name="company_site" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <button class="btn btn-ink btn-lg" id="cGo">Send message</button>
-      </form>`);
+        <button class="btn btn-pop btn-lg" id="cGo">Send message</button>
+      </form>
+      <aside class="contact-side">
+        <a class="contact-tip" href="#" data-act="request"><b>Want something made?</b><span>Send a custom order straight to an artist.</span></a>
+        <a class="contact-tip" href="#" data-act="sell"><b>Are you an artist?</b><span>Apply for your own page and showcase.</span></a>
+        <a class="contact-tip" href="/#faq" data-scroll><b>Quick answers</b><span>Orders, payments and accounts in the FAQ.</span></a>
+      </aside></div>`);
   },
   forgot() {
     if (S.cfg && !S.cfg.mail) return pageShell('Account', 'Forgot your password?', `<p class="big">Password reset by email isn't switched on for this site yet.</p><p>Please <a class="ulink" href="/contact" data-nav>contact us</a> from the email address on your account and we'll help you get back in.</p>`);
