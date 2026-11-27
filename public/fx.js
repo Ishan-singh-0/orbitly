@@ -32,7 +32,7 @@ if (!CALM) {
   const hero = document.querySelector('.hero');
   if (hero) hero.insertAdjacentHTML('afterbegin', `<div class="blobs" aria-hidden="true">${['#FF5757', '#FAE05A', '#8C7BFF', '#5FD3B3', '#FF9A3C'].map((c, i) => `<i style="--c:${c};--n:${i}"></i>`).join('')}</div>`);
   let ticking = false;
-  addEventListener('scroll', () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { root.style.setProperty('--sy', Math.min(scrollY, 1400)); ticking = false; }); }, { passive: true });
+  addEventListener('scroll', () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { if (scrollY < 1600) hero?.style.setProperty('--sy', Math.min(scrollY, 1400)); ticking = false; }); }, { passive: true }); // set on the hero only, so scrolling doesn't restyle the whole page
 
   if (matchMedia('(hover: hover)').matches) {
     // buttons lean toward the pointer, cards tilt under it

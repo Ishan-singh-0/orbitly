@@ -1,0 +1,91 @@
+/* Polish layer: scroll-linked motion, hover light and smoother entrances. Loaded last.
+   Everything that moves sits behind "no-preference", so reduced-motion visitors get a still page.
+   The logo and welcome screen animations live in their own files and are not touched here. */
+
+@media (prefers-reduced-motion: no-preference) {
+
+  /* reading progress */
+  .scroll-bar { position: fixed; left: 0; top: 0; height: 3px; width: 100%; z-index: 1200; pointer-events: none; background: linear-gradient(90deg, #FF5757, #FF9A3C, #FAE05A); transform-origin: left; transform: scaleX(0); }
+
+  /* header settles as you scroll */
+  .nav { transition: box-shadow .35s var(--ease), background .35s; }
+  .nav-in { transition: height .35s var(--ease); }
+  .nav.scrolled .nav-in { height: 62px; }
+
+  /* a pill that slides to the link under the pointer, or to the section on screen */
+  .nav-links { position: relative; isolation: isolate; }
+  .nav-pill { position: absolute; z-index: -1; left: 0; top: 0; border-radius: 99px; background: color-mix(in srgb, var(--pop) 16%, transparent); opacity: 0; pointer-events: none; transition: transform .45s cubic-bezier(.3, 1.35, .5, 1), width .45s cubic-bezier(.3, 1.35, .5, 1), opacity .25s; }
+  .nav-pill.on { opacity: 1; }
+
+  /* hero drifts apart slightly while leaving the screen */
+  .hero-copy { translate: 0 calc(var(--hp, 0) * .12px); }
+  .hero-art { translate: 0 calc(var(--hp, 0) * -.06px); }
+  .hero h1 em { display: inline-block; background: linear-gradient(100deg, var(--pop) 35%, #FFB14A 50%, var(--pop) 65%) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .08em; animation: sheen 6s ease-in-out infinite; }
+
+  /* a paint stroke draws under the accent word of each heading */
+  .sec-head h2 em, .how-head h2 em, .faq-grid h2 em { background: linear-gradient(var(--pop), #FFB14A) no-repeat 0 96% / 0 .07em; transition: background-size 1s .45s var(--ease); }
+  .by-word.seen em { background-size: 100% .07em; }
+
+  /* light that follows the pointer across cards */
+  .s-card { position: relative; }
+  .prod::before, .s-card::before { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit; background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, #fff 26%, transparent), transparent 70%); opacity: 0; transition: opacity .35s; }
+  .prod:hover::before, .s-card:hover::before { opacity: 1; }
+
+  /* a sweep of shine across the main buttons */
+  .btn-pop { position: relative; overflow: hidden; }
+  .btn-pop::after { content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent); transform: skewX(-20deg); pointer-events: none; }
+  .btn-pop:hover::after { left: 130%; transition: left .7s var(--ease); }
+
+  /* underline that grows from the left */
+  .footer a:not(.logo), .ulink { background-image: linear-gradient(currentColor, currentColor); background-repeat: no-repeat; background-position: 0 100%; background-size: 0 1px; transition: background-size .35s var(--ease), color .2s; }
+  .footer a:not(.logo):hover, .ulink:hover { background-size: 100% 1px; }
+  .footer a:not(.logo) { width: fit-content; max-width: 100%; }
+
+  /* artwork fades up once it has loaded, with a shimmer while waiting */
+  .shot-img img, .work img { transition: transform .7s var(--ease), opacity .6s var(--ease), filter .6s var(--ease); }
+  img.img-wait { opacity: 0; filter: blur(14px); }
+  .shot-img:has(.img-wait), .work:has(.img-wait) { min-height: 150px; background: linear-gradient(100deg, var(--soft) 30%, var(--card) 50%, var(--soft) 70%) 0 0 / 300% 100%; animation: shimmer 1.3s linear infinite; }
+
+  /* showcase tiles on artist pages */
+  .works button.work:hover { translate: 0 -6px; box-shadow: 0 24px 36px -22px rgba(0, 0, 0, .55); transition-delay: 0s; }
+  .works button.work:hover img { transform: scale(1.1) rotate(1.5deg); }
+  .work span { transition: padding .35s var(--ease); }
+  .work:hover span { padding-bottom: 14px; }
+  .pf-banner > svg { translate: 0 calc(var(--bp, 0) * .25px); }
+
+  /* how it works: a line fills as you read, and the current steps light up */
+  .steps { position: relative; }
+  .steps::before { content: ""; position: absolute; left: -26px; top: 0; bottom: 0; width: 3px; border-radius: 3px; background: linear-gradient(var(--pop), #FFB14A, #FAE05A); transform-origin: top; transform: scaleY(var(--p, 0)); }
+  .steps .num { transition: opacity .4s, scale .5s cubic-bezier(.3, 1.7, .5, 1); transform-origin: left center; opacity: .35; scale: .9; }
+  .steps li.lit .num { opacity: 1; scale: 1; }
+
+  /* the example artist page floats */
+  .page-mock { animation: hover-float 7s ease-in-out infinite; }
+
+  /* the big footer word fills with paint when it arrives */
+  .foot-word { background: linear-gradient(90deg, #FF5757, #FF9A3C, #FAE05A) no-repeat 0 0 / 0 100%; -webkit-background-clip: text; background-clip: text; transition: background-size 1.8s var(--ease); }
+  .foot-word.lit { background-size: 100% 100%; }
+
+  /* windows, menus and messages ease in */
+  .overlay { transition: opacity .3s var(--ease), visibility .3s; }
+  .pop { transform-origin: top right; }
+  .toasts > * { animation: toast-slide .55s cubic-bezier(.3, 1.5, .5, 1) both; }
+  .qa button .plus { transition: rotate .45s cubic-bezier(.3, 1.7, .5, 1); }
+  .qa.open button .plus { rotate: 180deg; }
+  .icon-btn { transition: background .2s, rotate .4s cubic-bezier(.3, 1.7, .5, 1), scale .2s; }
+  .icon-btn:hover { rotate: 12deg; scale: 1.08; }
+  .icon-btn:active { scale: .92; }
+}
+
+/* "View portfolio" is a link styled as a button; the caption's grey link colour was washing out its label */
+.shot figcaption a.btn-ink { color: var(--bg); }
+/* room for the tall letters, which the paint fill would otherwise cut off */
+.foot-word { padding-top: .14em; margin-top: 0; }
+
+@keyframes sheen { 0%, 20% { background-position: 100% 0; } 80%, 100% { background-position: 0 0; } }
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -50% 0; } }
+@keyframes hover-float { 50% { translate: 0 -12px; } }
+@keyframes toast-slide { from { opacity: 0; translate: 40px 0; scale: .9; } }
+
+@media (max-width: 1000px) { .nav-pill { display: none; } }
+@media (max-width: 640px) { .steps::before { left: -11px; width: 2px; } }
