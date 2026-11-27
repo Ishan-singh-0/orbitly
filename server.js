@@ -894,7 +894,7 @@ function getFile(name) {
   return c;
 }
 function serveFile(req, res, c, name) {
-  const long = /\.(woff2)$/.test(c.ext), h = { 'Content-Type': c.type, ETag: c.etag, Vary: 'Accept-Encoding', 'Cache-Control': long ? 'public, max-age=31536000, immutable' : /\.(jpg|png|ico|svg|webmanifest)$/.test(c.ext) ? 'public, max-age=86400' : 'no-cache' };
+  const long = /\.(woff2)$/.test(c.ext), h = { 'Content-Type': c.type, ETag: c.etag, Vary: 'Accept-Encoding', 'Cache-Control': long ? 'public, max-age=31536000, immutable' : /\.(jpg|png|ico|webmanifest)$/.test(c.ext) ? 'public, max-age=86400' : 'no-cache' }; // SVGs (the logo) are re-checked, so changes show at once
   if (req.headers['if-none-match'] === c.etag) { res.writeHead(304, h); return res.end(); }
   if (c.gz && res.acceptsGzip) { res.writeHead(200, { ...h, 'Content-Encoding': 'gzip' }); return res.end(req.method === 'HEAD' ? undefined : c.gz); }
   res.writeHead(200, h); res.end(req.method === 'HEAD' ? undefined : c.buf);

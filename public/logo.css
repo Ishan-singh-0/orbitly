@@ -1,6 +1,10 @@
 /* Tweak’d logo: layout and motion. Used by the app and by the GitHub Pages landing page. */
 .logo { display: inline-flex; align-items: center; line-height: 0; }
 .logo-img, .tw-mark { width: 88px; height: 58px; flex: none; }
+/* With scripts on, the animated logo replaces the plain image, so never flash the image first.
+   It still appears after a few seconds if the script fails to load. */
+@media (scripting: enabled) { img.logo-img { visibility: hidden; animation: tw-fallback 0s 3s forwards; } }
+@keyframes tw-fallback { to { visibility: visible; } }
 .tw-mark { overflow: visible; filter: drop-shadow(0 4px 8px rgba(30, 20, 10, .16)); transition: transform .5s cubic-bezier(.3, 1.7, .5, 1), filter .4s; }
 .footer .logo-img, .footer .tw-mark { width: 150px; height: 99px; }
 
