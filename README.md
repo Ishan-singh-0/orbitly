@@ -38,7 +38,6 @@ Nothing on the site is demo content. Everything comes from real activity:
 | Listings | Product, cover artwork, price, delivery time, description and "what's included" — live for everyone instantly |
 | Messaging | Two-way conversations, service requests, unread counts — delivered in real time |
 | Live stats & presence | Members / sellers / services / people online and the "Online now" dot, pushed over Server-Sent Events |
-| Exchange rates | Fetched from ExchangeRate-API every 6 hours |
 | Orders & reviews | A service request creates an order (requested → in progress → delivered → completed, plus decline/cancel/revision). Only buyers of completed orders can leave a 1–5 review, so ratings are real |
 | Two-step login | Optional TOTP (any authenticator app) with a QR code, 10 one-time recovery codes, secret encrypted at rest |
 | Bot protection | Self-hosted proof-of-work CAPTCHA (no third party) on sign-up, contact, password reset, and login after failures |
@@ -153,6 +152,8 @@ tools/           admin.js (moderation CLI), reset-password.js
 SECURITY.md      what's protected, what's on you, known gaps
 Dockerfile       container image (non-root, health check)
 ```
+
+All amounts are in Indian rupees (₹), including Stripe checkout.
 
 ## Founding artists and sample projects
 

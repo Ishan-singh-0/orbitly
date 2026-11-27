@@ -62,6 +62,12 @@ db.users.forEach(u => { if (u.seller && !u.artist) u.artist = 'pending'; });
 const isArtist = u => !!(u && u.seller && u.artist === 'approved' && !u.banned);
 // older records had a separate campus field; it is folded into location
 db.users.forEach(u => { const x = u.seller; if (x && 'campus' in x) { if (!x.location && x.campus) x.location = x.campus; delete x.campus; } });
+if (db.currency !== 'INR') { // one-time conversion of older dollar amounts
+  const toInr = v => v ? Math.round(v * 85) : v;
+  db.orders.forEach(o => { o.price = toInr(o.price); o.total = toInr(o.total); o.budget = toInr(o.budget); });
+  db.gigs.forEach(g => { g.price = toInr(g.price); });
+  db.currency = 'INR';
+}
 const placeOf = x => [x?.location, x?.country].filter(Boolean).join(', ');
 const sessions = new Map(); // sha256(token) -> {uid, exp}
 try { for (const [k, v] of Object.entries(JSON.parse(fs.readFileSync(SES_FILE, 'utf8')))) if (v.exp > Date.now()) sessions.set(k, v); } catch {}
@@ -191,13 +197,13 @@ async function seedDemo() {
   for (let i = 0; i < 4; i++) { const id = crypto.randomBytes(8).toString('hex'), file = id + '.png'; fs.writeFileSync(path.join(UP_DIR, file), demoArt(i), { mode: 0o600 }); const rec = { id, owner: artist.id, title: ['Bloom pattern', 'Tile study', 'Peaks', 'Garden shapes'][i], file, created: Date.now() }; db.art.push(rec); arts.push(rec); }
   const buyer = made.Buyer;
   if (buyer) { // one request waiting for a quote, so both sides have something to try
-    const now = Date.now(), order = { id: db.nextOrder++, kind: 'custom', gigId: 0, gigTitle: 'Custom tote bag: my plain canvas bag', product: 'tote', item: 'my plain canvas bag', options: { color: 'Sand' }, qty: 1, price: 0, total: 0, days: 0, budget: 25, deadline: '', links: [], inspiration: [], buyer: buyer.id, seller: artist.id, status: 'requested', pay: 'unpaid', created: now, updated: now, brief: 'Could you paint a small garden on the front, with "Tuesday" written underneath? I will drop the bag off this week.' };
+    const now = Date.now(), order = { id: db.nextOrder++, kind: 'custom', gigId: 0, gigTitle: 'Custom tote bag: my plain canvas bag', product: 'tote', item: 'my plain canvas bag', options: { color: 'Sand' }, qty: 1, price: 0, total: 0, days: 0, budget: 900, deadline: '', links: [], inspiration: [], buyer: buyer.id, seller: artist.id, status: 'requested', pay: 'unpaid', created: now, updated: now, brief: 'Could you paint a small garden on the front, with "Tuesday" written underneath? I will drop the bag off this week.' };
     db.orders.push(order);
     db.messages.push({ id: db.nextMsg++, from: buyer.id, to: artist.id, text: order.brief, kind: 'order', gigId: 0, gigTitle: order.gigTitle, gigPrice: 0, gigDays: 0, orderId: order.id, created: now, read: false });
     for (const [product, item, status, price, days, brief, extra] of [
-      ['mouse', 'my old grey mouse', 'quoted', 24, 5, 'Paint small planets on the buttons, please.', { quoteNote: 'I can do this with sealed acrylics.' }],
-      ['hoodie', 'my black hoodie', 'delivered', 40, 8, 'A mountain line drawing across the back.', { delivery: 'Finished. Pick it up at the library desk.' }],
-      ['bottle', 'my steel water bottle', 'completed', 18, 4, 'A wave pattern all the way round.', { delivery: 'Done and handed over.' }]
+      ['mouse', 'my old grey mouse', 'quoted', 1200, 5, 'Paint small planets on the buttons, please.', { quoteNote: 'I can do this with sealed acrylics.' }],
+      ['hoodie', 'my black hoodie', 'delivered', 2500, 8, 'A mountain line drawing across the back.', { delivery: 'Finished. Pick it up at the library desk.' }],
+      ['bottle', 'my steel water bottle', 'completed', 800, 4, 'A wave pattern all the way round.', { delivery: 'Done and handed over.' }]
     ]) {
       const t = Date.now() - 864e5, o = { ...order, id: db.nextOrder++, gigTitle: `Custom ${productOf(product).name.toLowerCase()}: ${item}`, product, item, options: {}, price, total: price, days, brief, budget: 0, status, created: t, updated: t, ...extra };
       db.orders.push(o);
@@ -354,16 +360,6 @@ async function sendVerification(req, u) {
 }
 const lastNotify = new Map();
 
-/* ---------------------------------------------------- live exchange rates */
-const rates = { USD: 1, INR: 83, EUR: 0.92, GBP: 0.79 }; let ratesAt = null;
-async function refreshRates() {
-  try {
-    const j = await (await fetch('https://open.er-api.com/v6/latest/USD', { signal: AbortSignal.timeout(8000) })).json();
-    if (j.result === 'success') { for (const k of ['INR', 'EUR', 'GBP']) if (j.rates[k] > 0) rates[k] = j.rates[k]; ratesAt = Date.now(); }
-  } catch { /* keep last known rates */ }
-}
-refreshRates(); setInterval(refreshRates, 6 * 3600e3).unref();
-
 /* ------------------------------------------------------- real-time stream */
 const clients = new Set(); // {res, uid, ip}
 let stateTimer = null;
@@ -375,7 +371,6 @@ function stateObj() {
     stats: { members: pu.length, sellers: pu.filter(isArtist).length, artworks: db.art.filter(a => isArtist(db.users.find(u => u.id === a.owner))).length, services: db.gigs.filter(g => !isBanned(g.owner)).length, online: onlineIds.size },
     online: pu.filter(u => isArtist(u) && onlineIds.has(u.id)).map(u => u.seller.handle),
     places: Object.entries(pu.filter(u => isArtist(u) && placeOf(u.seller)).reduce((m, u) => (m[placeOf(u.seller)] = (m[placeOf(u.seller)] || 0) + 1, m), {})).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 24).map(([name, artists]) => ({ name, artists })),
-    rates: { ...rates, updated: ratesAt },
     config: { company: COMPANY, contactEmail: CONTACT_EMAIL, siteUrl: SITE_URL, mail: MAIL_ON, captcha: CAPTCHA_ON, payments: PAY_ON }
   };
 }
@@ -448,7 +443,7 @@ async function api(req, res, url) {
     const obj = ev.data?.object || {};
     if (ev.type === 'checkout.session.completed') {
       const o = db.orders.find(x => x.id === +obj.client_reference_id);
-      if (o && o.pay !== 'paid' && obj.payment_status === 'paid' && obj.currency === 'usd' && obj.amount_total === (o.total || o.price) * 100) {
+      if (o && o.pay !== 'paid' && obj.payment_status === 'paid' && obj.currency === 'inr' && obj.amount_total === (o.total || o.price) * 100) {
         o.pay = 'paid'; o.paidAt = Date.now(); o.paymentIntent = String(obj.payment_intent || ''); o.updated = Date.now();
         db.messages.push({ id: db.nextMsg++, from: o.buyer, to: o.seller, text: 'Payment received. Tweak’d holds it until the buyer approves the delivery.', kind: 'system', orderId: o.id, created: Date.now(), read: false });
         audit('order_paid', { order: o.id });
@@ -712,12 +707,12 @@ async function api(req, res, url) {
     if (T[4] && note.length < 5) return fail(res, 400, 'Add a short note (at least 5 characters).');
     if (a === 'quote') {
       const price = Math.round(+b.price), days = Math.round(+b.days);
-      if (!(price >= 5 && price <= 5000)) return fail(res, 400, 'Quote between 5 and 5000 USD.');
+      if (!(price >= 50 && price <= 500000)) return fail(res, 400, 'Quote between ₹50 and ₹5,00,000.');
       if (!(days >= 1 && days <= 90)) return fail(res, 400, 'Delivery must be 1–90 days.');
       Object.assign(o, { price, total: price, days, quoteNote: note });
     }
     o.status = T[2]; o.updated = now; if (a === 'deliver') o.delivery = note;
-    db.messages.push({ id: db.nextMsg++, from: u.id, to: peerId, text: `${u.name} ${T[3]}${a === 'quote' ? ` of $${o.total}, ready in ${o.days} days` : ''}.${note ? '\n' + note : ''}`, kind: 'system', orderId: o.id, created: now, read: false });
+    db.messages.push({ id: db.nextMsg++, from: u.id, to: peerId, text: `${u.name} ${T[3]}${a === 'quote' ? ` of ₹${o.total.toLocaleString('en-IN')}, ready in ${o.days} days` : ''}.${note ? '\n' + note : ''}`, kind: 'system', orderId: o.id, created: now, read: false });
     save(); bump(); audit('order_' + a, { order: o.id, user: u.id });
     for (const id of [u.id, peerId]) notifyUser(id, 'order', { id: o.id, status: o.status, text: id === u.id ? 'Order updated' : `${u.name.split(' ')[0]} ${T[3]}`, alerts: alertsFor(id), unread: unreadFor(id), peer: id === u.id ? peerId : u.id, self: id === u.id });
     return send(res, 200, { ok: true, order: orderOut(o, u.id) });
@@ -733,7 +728,7 @@ async function api(req, res, url) {
     if (!['in_progress', 'delivered'].includes(o.status)) return fail(res, 409, 'You can pay once the artist has accepted the order.');
     const base = SITE_URL || (PROD ? '' : baseUrl(req)); if (!base) return fail(res, 500, 'The site address is not configured.');
     try {
-      const s = await stripe('/v1/checkout/sessions', { mode: 'payment', client_reference_id: o.id, customer_email: u.email, success_url: `${base}/?paid=${o.id}`, cancel_url: `${base}/?unpaid=${o.id}`, 'line_items': { 0: { quantity: 1, price_data: { currency: 'usd', unit_amount: (o.total || o.price) * 100, product_data: { name: `${o.gigTitle}${o.qty > 1 ? ' × ' + o.qty : ''}` } } } }, metadata: { order: o.id } });
+      const s = await stripe('/v1/checkout/sessions', { mode: 'payment', client_reference_id: o.id, customer_email: u.email, success_url: `${base}/?paid=${o.id}`, cancel_url: `${base}/?unpaid=${o.id}`, 'line_items': { 0: { quantity: 1, price_data: { currency: 'inr', unit_amount: (o.total || o.price) * 100, product_data: { name: `${o.gigTitle}${o.qty > 1 ? ' × ' + o.qty : ''}` } } } }, metadata: { order: o.id } });
       return send(res, 200, { url: s.url });
     } catch (e) { audit('stripe_error', { order: o.id, msg: e.message }); return fail(res, 502, "We couldn't reach the payment provider. Please try again in a moment."); }
   }
@@ -762,7 +757,7 @@ async function api(req, res, url) {
     if (!to) return fail(res, 404, 'Choose an artist.'); if (to.id === u.id) return fail(res, 400, "You can't order from yourself.");
     const product = String(b.product || ''), prod = product && product !== 'other' ? productOf(product) : null;
     if (product !== 'other' && !prod) return fail(res, 400, 'Choose what you want customised.');
-    const item = clean(b.item, 80), brief = cleanText(b.brief, 1500), color = clean(b.color, 30), budget = Math.max(0, Math.min(5000, Math.round(+b.budget) || 0)), deadline = /^\d{4}-\d{2}-\d{2}$/.test(b.deadline) ? b.deadline : '';
+    const item = clean(b.item, 80), brief = cleanText(b.brief, 1500), color = clean(b.color, 30), budget = Math.max(0, Math.min(500000, Math.round(+b.budget) || 0)), deadline = /^\d{4}-\d{2}-\d{2}$/.test(b.deadline) ? b.deadline : '';
     if (item.length < 3) return fail(res, 400, 'Describe your item in a few words.');
     if (brief.length < 15) return fail(res, 400, 'Tell the artist what you want (at least 15 characters).');
     const links = lines(b.links, 5, 200).filter(l => /^https?:\/\/[^\s"'<>]+\.[^\s"'<>]+$/i.test(l));
@@ -815,7 +810,7 @@ async function api(req, res, url) {
     if (product && !productOf(product)) return fail(res, 400, 'Pick a product from the list.');
     if (artwork && !db.art.some(a => a.id === artwork && a.owner === u.id)) return fail(res, 400, 'Choose a cover from your own portfolio.');
     if (!CATS.includes(category)) return fail(res, 400, 'Pick a category.');
-    if (!(price >= 5 && price <= 5000)) return fail(res, 400, 'Price must be between 5 and 5000 USD.');
+    if (!(price >= 5 && price <= 500000)) return fail(res, 400, 'Price must be between ₹5 and ₹5,00,000.');
     if (!(days >= 1 && days <= 60)) return fail(res, 400, 'Delivery must be 1–60 days.');
     if (description.length < 30) return fail(res, 400, 'Describe your service in at least 30 characters.');
     if (db.gigs.filter(g => g.owner === u.id).length >= 25) return fail(res, 400, 'Service limit reached (25).');
