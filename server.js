@@ -218,8 +218,8 @@ async function seedDemo() {
    copies new ones into their portfolio and removes ones that were deleted. Without a login configured
    (ANIRUDH_EMAIL + ANIRUDH_PASSWORD) the page is a showcase that points to Instagram. FEATURED_ARTISTS=0 turns this off. */
 const FEATURED = [{ env: 'ANIRUDH', name: 'Anirudh Sondhi', handle: 'anirudh-sondhi', instagram: 'courtesy_of_cube',
-  headline: '“I art :)” · Ani', category: 'apparel', skills: ['Ink doodle art', 'Hand-painted clothing', 'Custom footwear', 'Illustration'],
-  bio: 'Anirudh Sondhi, known as Ani, posts as @courtesy_of_cube. His work runs from dense hand-drawn ink doodles to painted pieces, and the sample projects here take that onto things you can wear: painted denim, lettered boots and jersey designs.' }];
+  headline: '“I art :)” · Ani', category: 'apparel', skills: ['Ink doodle art', 'Digital illustration', 'Character art'],
+  bio: 'Anirudh Sondhi, known as Ani, posts as @courtesy_of_cube. His work runs from dense hand-drawn ink doodles to colourful digital illustration.' }];
 async function seedFeatured() {
   for (const f of FEATURED) {
     const email = String(process.env[f.env + '_EMAIL'] || '').toLowerCase(), pw = String(process.env[f.env + '_PASSWORD'] || '');
