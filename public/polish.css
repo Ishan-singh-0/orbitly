@@ -127,3 +127,80 @@
 @keyframes step-fill { from { width: 0; } }
 @keyframes step-pulse { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--pop) 55%, transparent); } to { box-shadow: 0 0 0 10px transparent; } }
 @keyframes card-in { from { opacity: 0; translate: 0 22px; } }
+
+/* ---- artist portfolios: picture avatars, section filters, picture viewer ---- */
+.avatar.photo { overflow: hidden; background: #fff; }
+.avatar.photo img { width: 100%; height: 100%; object-fit: cover; }
+.series { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.series .chip small { opacity: .6; margin-left: 4px; }
+.series .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.works .work[hidden] { display: none; }
+.pf-sub { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--pop); margin: 26px 0 0; }
+.pf-sub + .skill-row { margin-top: 10px; }
+.light-stage { position: relative; }
+.light-nav { position: absolute; top: 50%; translate: 0 -50%; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--card) 85%, transparent); border: 1px solid var(--line); backdrop-filter: blur(8px); transition: scale .25s var(--ease), background .2s; }
+.light-nav:hover { scale: 1.12; background: var(--card); }
+.light-nav.prev { left: 4px; }
+.light-nav.next { right: 4px; }
+.light-nav.next .i { rotate: 180deg; }
+.light-series { display: inline-block; margin-top: 14px; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--pop); font-weight: 600; }
+.light p.light-title { margin-top: 4px; color: var(--ink); font-weight: 600; font-size: 1.1rem; }
+.light-title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.light p.light-note { max-width: 620px; margin: 8px auto 0; font-size: .92rem; line-height: 1.6; white-space: pre-wrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .light-stage img { animation: view-in .45s var(--ease) both; }
+  .series .chip { animation: card-in .45s var(--ease) backwards; }
+  .series .chip:nth-child(2) { animation-delay: .05s; }
+  .series .chip:nth-child(3) { animation-delay: .1s; }
+  .series .chip:nth-child(4) { animation-delay: .15s; }
+  .series .chip:nth-child(n+5) { animation-delay: .2s; }
+}
+@keyframes view-in { from { opacity: 0; scale: .96; } }
+
+/* long button labels wrap instead of widening the page on phones */
+.pf-grid > * { min-width: 0; }
+.side-card .btn { white-space: normal; max-width: 100%; }
+
+/* headline: leave room under each line so the tails of y, g and p aren't cut off */
+.hero h1 .ln { padding-bottom: .22em; margin-bottom: -.22em; }
+.hero h1 .ln > span { animation-name: rise-clear; }
+.hero h1 em { padding-bottom: .2em; margin-bottom: -.2em; }
+@keyframes rise-clear { from { transform: translateY(135%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero h1 .ln > span { animation: none; } }
+
+/* ---- artist cards show the artist's own work ---- */
+.seller-row .s-card { display: flex; flex-direction: column; }
+.s-ban { display: flex; gap: 2px; height: 132px; overflow: hidden; }
+.s-ban img { flex: 1 1 0; min-width: 0; height: 100%; object-fit: cover; transition: flex-grow .5s var(--ease), scale .5s var(--ease); }
+.s-card:hover .s-ban img:hover { flex-grow: 2.2; }
+.s-card .avatar { position: relative; z-index: 1; }
+.s-body { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.s-body .s-meta { margin-top: auto; align-self: stretch; }
+.s-body .cat-badge { margin-bottom: 16px; }
+
+/* ---- artist page banner made from their pictures ---- */
+.pf-strip { display: flex; gap: 3px; height: 100%; }
+.pf-strip img { flex: 1 1 0; min-width: 0; height: 100%; object-fit: cover; }
+.pf-banner::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, .35), rgba(0, 0, 0, .05) 55%, rgba(0, 0, 0, .3)); }
+.pf-banner > .container { z-index: 2; }
+.pf-head { position: relative; z-index: 3; }
+@media (max-width: 640px) { .pf-strip img:nth-child(n+4) { display: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .s-card:hover .avatar { animation: avatar-hop .6s cubic-bezier(.3, 1.7, .5, 1); }
+  .pf-strip img { animation: strip-in .9s var(--ease) backwards; }
+  .pf-strip img:nth-child(2) { animation-delay: .07s; }
+  .pf-strip img:nth-child(3) { animation-delay: .14s; }
+  .pf-strip img:nth-child(4) { animation-delay: .21s; }
+  .pf-strip img:nth-child(5) { animation-delay: .28s; }
+}
+@keyframes avatar-hop { 45% { translate: 0 -8px; scale: 1.06; } }
+@keyframes strip-in { from { opacity: 0; translate: 0 -30px; scale: 1.15; } }
+
+/* the header gets shorter on scroll, so the section bar on artist pages must move up with it (no see-through gap) */
+@media (prefers-reduced-motion: no-preference) {
+  .pf-nav { transition: top .35s var(--ease); }
+  body:has(.nav.scrolled) .pf-nav { top: 62px; }
+  /* and the logo shrinks to fit, so it doesn't hang over that bar */
+  .nav .logo .tw-mark { transition: width .35s var(--ease), height .35s var(--ease), transform .5s cubic-bezier(.3, 1.7, .5, 1), filter .4s; }
+  .nav.scrolled .logo .tw-mark { width: 94px; height: 62px; margin-block: 0; }
+}

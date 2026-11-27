@@ -215,11 +215,16 @@ async function seedDemo() {
 
 /* ------------------------------------------------------- founding artists
    Real artists who are part of the project. Their photos live in showcase/<handle>/ in the repository; each start
-   copies new ones into their portfolio and removes ones that were deleted. Without a login configured
-   (ANIRUDH_EMAIL + ANIRUDH_PASSWORD) the page is a showcase that points to Instagram. FEATURED_ARTISTS=0 turns this off. */
-const FEATURED = [{ env: 'ANIRUDH', name: 'Anirudh Sondhi', handle: 'anirudh-sondhi', instagram: 'courtesy_of_cube',
+   copies new ones into their portfolio and removes ones that were deleted. An optional portfolio.json in that folder sets the
+   order, titles, sections and notes. Without a login configured (<NAME>_EMAIL + <NAME>_PASSWORD) the page is a showcase
+   only. FEATURED_ARTISTS=0 turns this off. */
+const FEATURED = [{ env: 'ANIRUDH', name: 'Anirudh Sondhi', handle: 'anirudh-sondhi', instagram: 'courtesy_of_cube', portrait: '/artists/anirudh-sondhi.jpg',
   headline: '“I art :)” · Ani', category: 'apparel', skills: ['Ink doodle art', 'Digital illustration', 'Character art'],
-  bio: 'Anirudh Sondhi, known as Ani, posts as @courtesy_of_cube. His work runs from dense hand-drawn ink doodles to colourful digital illustration.' }];
+  bio: 'Anirudh Sondhi, known as Ani, posts as @courtesy_of_cube. His work runs from dense hand-drawn ink doodles to colourful digital illustration.' },
+{ env: 'SAUMIL', name: 'Saumil Nigam', handle: 'saumil-nigam', instagram: '', location: 'Delhi', country: 'India', portrait: '/artists/saumil-nigam.jpg',
+  headline: 'Painter, illustrator and photographer', category: 'paper', skills: ['Painting', 'Portraits', 'Digital illustration', 'Sketching', 'AutoCAD', 'Brand design', 'Photography'],
+  inspiredBy: ['Pop art', 'Surrealism', 'Kid Cudi', 'Mac Miller', 'Nirvana', 'System of a Down', 'Casey Neistat', 'Proko', 'Vsauce', 'KAWS', 'Takashi Murakami', 'Kanye West'],
+  bio: 'I picked up a tennis racket before I had words for discipline. Starting at four, the sport taught me rhythm and endurance.\n\nI graduated from Modern School, Barakhamba Road, in 2025, where a 30-foot canvas for the school exhibition taught me what scale and collaboration demand. My practice moves between painting and photography, and Triveni Kala Sangam gave me structure with room to breathe.\n\nMusic is the emotional backbone of my work. Architecture is where these threads meet: I am heading to design college to make spaces people can walk through, feel and remember.\n\nI am not chasing a fixed style. I am building a way of seeing.' }];
 async function seedFeatured() {
   for (const f of FEATURED) {
     const email = String(process.env[f.env + '_EMAIL'] || '').toLowerCase(), pw = String(process.env[f.env + '_PASSWORD'] || '');
@@ -232,18 +237,23 @@ async function seedFeatured() {
     const canLogin = !!(email && pw.length >= 10);
     if (canLogin) { u.email = email; if (!(await checkPw(u, pw)) && !u.claimed) await setPw(u, pw); u.claimed = true; }
     u.contactOnly = !u.claimed;
-    if (!u.claimed) Object.assign(u.seller, { headline: f.headline, category: f.category, skills: f.skills, bio: f.bio, instagram: f.instagram }); // until he can edit it himself
+    if (!u.claimed) Object.assign(u.seller, { headline: f.headline, category: f.category, skills: f.skills, bio: f.bio, instagram: f.instagram, location: f.location || '', country: f.country || '' }); // until the artist can edit it
+    Object.assign(u, { portrait: f.portrait || '', inspiredBy: f.inspiredBy || [] });
     const dir = path.join(__dirname, 'showcase', f.handle);
-    let files = []; try { files = fs.readdirSync(dir).filter(n => /\.(jpe?g|png|webp)$/i.test(n)).sort().slice(0, 40); } catch {}
+    let files = []; try { files = fs.readdirSync(dir).filter(n => /\.(jpe?g|png|webp)$/i.test(n)).sort().slice(0, 80); } catch {}
+    let meta = new Map();
+    try { meta = new Map(JSON.parse(fs.readFileSync(path.join(dir, 'portfolio.json'), 'utf8')).map((x, i) => [x.file, { ...x, order: i }])); } catch (e) { if (e.code !== 'ENOENT') console.warn('[showcase] ' + f.handle + '/portfolio.json could not be read: ' + e.message); }
+    const details = (name, i) => { const m = meta.get(name) || {}; const plain = name.replace(/\.[^.]+$/, '').replace(/^\d+[-_ ]*/, '').replace(/[-_]+/g, ' ').trim();
+      return { title: clean(m.title || (plain ? plain[0].toUpperCase() + plain.slice(1) : 'Sample project'), 60), series: clean(m.series, 40), note: cleanText(m.note, 500), order: m.order ?? i }; };
     db.art.filter(a => a.owner === u.id && a.source && !files.includes(a.source)).forEach(a => { try { fs.unlinkSync(path.join(UP_DIR, a.file)); } catch {} db.art.splice(db.art.indexOf(a), 1); });
-    for (const name of files) {
-      if (db.art.some(a => a.owner === u.id && a.source === name && fs.existsSync(path.join(UP_DIR, a.file)))) continue;
+    for (const [i, name] of files.entries()) {
+      const had = db.art.find(a => a.owner === u.id && a.source === name && fs.existsSync(path.join(UP_DIR, a.file)));
+      if (had) { Object.assign(had, details(name, i)); continue; }
       const raw = fs.readFileSync(path.join(dir, name)), kind = imageKind(raw);
       if (!kind || raw.length > 4 * 1024 * 1024) { console.warn('[showcase] skipped ' + name + ' (not a JPG/PNG/WebP under 4 MB)'); continue; }
       db.art = db.art.filter(a => !(a.owner === u.id && a.source === name));
       const id = crypto.randomBytes(8).toString('hex'), file = id + '.' + kind; fs.writeFileSync(path.join(UP_DIR, file), raw, { mode: 0o600 });
-      const title = name.replace(/\.[^.]+$/, '').replace(/^\d+[-_ ]*/, '').replace(/[-_]+/g, ' ').trim();
-      db.art.push({ id, owner: u.id, title: clean(title ? title[0].toUpperCase() + title.slice(1) : 'Sample project', 60), file, source: name, created: Date.now() });
+      db.art.push({ id, owner: u.id, ...details(name, i), file, source: name, created: Date.now() });
     }
   }
   save(); bump();
@@ -392,10 +402,12 @@ const orderOut = (o, uid) => { const peerId = o.buyer === uid ? o.seller : o.buy
 const refOut = id => { const a = db.inspo.find(x => x.id === id); return a && { url: '/api/inspiration/' + a.id, name: a.name || 'Reference', pdf: a.file.endsWith('.pdf') }; };
 const MAX_ORDER_FILES = 10;
 const isOnline = uid => [...clients].some(c => c.uid === uid);
-const sellerOut = u => ({ handle: u.seller.handle, name: u.name, headline: u.seller.headline, category: u.seller.category, bio: u.seller.bio, location: u.seller.location || '', languages: u.seller.languages || [], skills: u.seller.skills || [], website: u.seller.website || '', instagram: u.seller.instagram || '', contactOnly: !!u.contactOnly, country: u.seller.country || '', place: placeOf(u.seller), works: db.art.filter(a => a.owner === u.id).length, accent: u.seller.accent || 0, avatar: u.seller.avatar || 0, since: u.seller.since, services: db.gigs.filter(g => g.owner === u.id).length, online: isOnline(u.id), ...sellerStats(u.id) });
+const sellerOut = u => ({ handle: u.seller.handle, name: u.name, headline: u.seller.headline, category: u.seller.category, bio: u.seller.bio, location: u.seller.location || '', languages: u.seller.languages || [], skills: u.seller.skills || [], website: u.seller.website || '', instagram: u.seller.instagram || '', portrait: u.portrait || '', previews: portfolioOrder(db.art.filter(a => a.owner === u.id)).slice(0, 5).map(a => '/uploads/' + a.file), inspiredBy: u.inspiredBy || [], contactOnly: !!u.contactOnly, country: u.seller.country || '', place: placeOf(u.seller), works: db.art.filter(a => a.owner === u.id).length, accent: u.seller.accent || 0, avatar: u.seller.avatar || 0, since: u.seller.since, services: db.gigs.filter(g => g.owner === u.id).length, online: isOnline(u.id), ...sellerStats(u.id) });
 const unreadFor = uid => db.messages.filter(m => m.to === uid && !m.read).length;
 const pub = u => ({ id: u.id, name: u.name, email: u.email, seller: u.seller ? sellerOut(u) : null, unread: unreadFor(u.id), verified: !!u.verified, needsVerify: MAIL_ON && !u.verified, notify: u.notify !== false, twoFactor: !!u.totp?.enabled, admin: !!u.admin, artist: u.seller ? u.artist || 'pending' : 'none', alerts: alertsFor(u.id), payout: u.seller?.payout || '' });
-const artOut = a => ({ id: a.id, title: a.title, url: '/uploads/' + a.file, created: a.created });
+const artOut = a => ({ id: a.id, title: a.title, url: '/uploads/' + a.file, created: a.created, series: a.series || '', note: a.note || '' });
+// founding artists' work keeps its portfolio order; everyone else's shows newest first
+const portfolioOrder = list => list.every(a => a.order !== undefined) ? list.sort((a, b) => a.order - b.order) : list.reverse();
 const gigOut = g => { const o = db.users.find(u => u.id === g.owner), s = o?.seller, aw = g.artwork && db.art.find(a => a.id === g.artwork); return { id: g.id, owner: g.owner, title: g.title, category: g.category, price: g.price, days: g.days, description: g.description || '', included: g.included || [], tags: g.tags || [], created: g.created, product: g.product || '', artwork: aw ? aw.id : '', artworkUrl: aw ? '/uploads/' + aw.file : '', country: s?.country || '', place: placeOf(s), seller: o?.name || 'Seller', handle: s?.handle || '', headline: s?.headline || '', avatar: s?.avatar || 0, accent: s?.accent || 0, ...gigStats(g.id) }; };
 const peerOut = u => ({ id: u.id, name: u.name, handle: u.seller?.handle || '', avatar: u.seller ? u.seller.avatar : null, accent: u.seller?.accent || 0 });
 // accepts "name", "@name" or a profile link (tracking parameters are dropped); '' if empty, null if not Instagram
@@ -528,12 +540,20 @@ async function api(req, res, url) {
   }
   if (p === '/api/me' && m === 'GET') return send(res, 200, { user: u0 ? pub(u0) : null });
   if (p === '/api/gigs' && m === 'GET') return send(res, 200, { gigs: db.gigs.filter(g => isArtist(db.users.find(u => u.id === g.owner))).map(gigOut).reverse() });
-  if (p === '/api/gallery' && m === 'GET') return send(res, 200, { works: db.art.slice().reverse().sort((x, y) => { const rank = a => { const o = db.users.find(u => u.id === a.owner); return o?.featured ? 0 : o?.demo ? 2 : 1; }; return rank(x) - rank(y) || (rank(x) === 0 ? x.created - y.created : 0); }).map(a => { const o = db.users.find(u => u.id === a.owner); return isArtist(o) && { ...artOut(a), handle: o.seller.handle, artist: o.name, contactOnly: !!o.contactOnly, instagram: o.seller.instagram || '', place: placeOf(o.seller), avatar: o.seller.avatar || 0 }; }).filter(Boolean).slice(0, 60) });
-  if (p === '/api/sellers' && m === 'GET') return send(res, 200, { sellers: publicUsers().filter(isArtist).sort((a, b) => b.seller.since - a.seller.since).slice(0, 200).map(sellerOut) });
+  if (p === '/api/gallery' && m === 'GET') {
+    // founding artists first, taking turns piece by piece so one large portfolio doesn't push the others down
+    const owners = new Map(db.users.map(o => [o.id, o])), turn = new Map();
+    const ranked = db.art.slice().reverse().map(a => { const o = owners.get(a.owner); return { a, o, rank: o?.featured ? 0 : o?.demo ? 2 : 1 }; });
+    ranked.filter(x => x.rank === 0).sort((x, y) => (x.a.order || 0) - (y.a.order || 0)).forEach(x => { const n = turn.get(x.a.owner) || 0; x.turn = n; turn.set(x.a.owner, n + 1); });
+    const works = ranked.sort((x, y) => x.rank - y.rank || (x.rank === 0 ? x.turn - y.turn || x.o.created - y.o.created : 0))
+      .map(({ a, o }) => isArtist(o) && { ...artOut(a), handle: o.seller.handle, artist: o.name, contactOnly: !!o.contactOnly, instagram: o.seller.instagram || '', place: placeOf(o.seller), avatar: o.seller.avatar || 0 }).filter(Boolean).slice(0, 150);
+    return send(res, 200, { works });
+  }
+  if (p === '/api/sellers' && m === 'GET') return send(res, 200, { sellers: publicUsers().filter(isArtist).sort((a, b) => (a.featured ? 0 : a.demo ? 2 : 1) - (b.featured ? 0 : b.demo ? 2 : 1) || b.seller.since - a.seller.since).slice(0, 200).map(sellerOut) });
   const sp = p.match(/^\/api\/sellers\/([a-z0-9-]{3,24})$/);
   if (sp && m === 'GET') {
     const u = publicUsers().find(x => x.seller?.handle === sp[1]); if (!u || !(isArtist(u) || u0?.id === u.id || u0?.admin)) return fail(res, 404, 'Artist not found.');
-    return send(res, 200, { seller: sellerOut(u), gigs: db.gigs.filter(g => g.owner === u.id).map(gigOut).reverse(), reviews: reviewsFor(u.id), art: db.art.filter(a => a.owner === u.id).map(artOut).reverse() });
+    return send(res, 200, { seller: sellerOut(u), gigs: db.gigs.filter(g => g.owner === u.id).map(gigOut).reverse(), reviews: reviewsFor(u.id), art: portfolioOrder(db.art.filter(a => a.owner === u.id)).map(artOut) });
   }
 
   if (p === '/api/signup' && m === 'POST') {
@@ -858,7 +878,7 @@ async function api(req, res, url) {
     if (limited('msg:' + u.id, 60, 3600e3)) return fail(res, 429, 'Slow down a little — you can send up to 60 messages an hour.');
     const b = await readBody(req), text = cleanText(b.text, 2000);
     const to = b.to ? db.users.find(x => x.id === String(b.to) && !x.banned) : publicUsers().find(x => x.seller?.handle === String(b.handle));
-    if (!to) return fail(res, 404, 'Recipient not found.'); if (to.contactOnly) return fail(res, 403, 'Please contact this artist on Instagram.'); if (to.id === u.id) return fail(res, 400, "You can't message yourself.");
+    if (!to) return fail(res, 404, 'Recipient not found.'); if (to.contactOnly) return fail(res, 403, to.seller?.instagram ? 'Please contact this artist on Instagram.' : 'This artist isn’t taking messages here yet.'); if (to.id === u.id) return fail(res, 400, "You can't message yourself.");
     const talked = db.messages.some(x => x.from === to.id && x.to === u.id);
     if (!isArtist(to) && !talked) return fail(res, 403, "You can't message this person.");
     let gig = null;

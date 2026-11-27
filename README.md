@@ -159,4 +159,6 @@ All amounts are in Indian rupees (₹), including Stripe checkout.
 
 Anirudh Sondhi has a built-in artist page at `/@anirudh-sondhi` with a link to Instagram ([@courtesy_of_cube](https://www.instagram.com/courtesy_of_cube/)). Put project photos in `showcase/anirudh-sondhi/` (JPG, PNG or WebP under 4 MB; the file name becomes the title), then commit and push or restart. Until `ANIRUDH_EMAIL` and `ANIRUDH_PASSWORD` (10+ characters) are set, the page is showcase-only and sends visitors to Instagram; with them set, he can log in and receive orders. `FEATURED_ARTISTS=0` turns this off.
 
+Saumil Nigam has a page at `/@saumil-nigam`, built from the portfolio PDF. Its pictures are in `showcase/saumil-nigam/`, with order, titles, sections and notes in `portfolio.json`. The page is showcase-only until `SAUMIL_EMAIL` and `SAUMIL_PASSWORD` are set.
+
 New visitors are offered a short guided tour; it can be replayed from the Tutorial link, the footer or the help assistant.

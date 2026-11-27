@@ -256,11 +256,11 @@ function renderPlaces() {
   }
 let sellerSig = null;
 function renderSellers() {
-  const sig = S.sellers.map(s => [s.handle, s.avatar, s.accent, s.works, s.headline, s.rating, s.reviews].join()).join('|');
+  const sig = S.sellers.map(s => [s.handle, s.avatar, s.portrait, s.previews, s.accent, s.works, s.headline, s.rating, s.reviews].join()).join('|');
   if (sig === sellerSig) return; sellerSig = sig;
   $('#sellerRow').innerHTML = S.sellers.length ? S.sellers.slice(0, 8).map(p => {
     const colour = PALS[p.accent % 8][1], joined = new Date(p.since).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-    return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}"></div><div class="s-body">${avE(AV_OFFSET + p.avatar, 'lg', p.handle)}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.place) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
+    return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}">${(p.previews || []).slice(0, 3).map(u => `<img src="${esc(u)}" alt="" loading="lazy">`).join('')}</div><div class="s-body">${face(p, AV_OFFSET + p.avatar, 'lg')}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.place) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
   }).join('') : `<div class="empty-card"><h3>No artists yet</h3><p>Your page could be the first one here. It takes a few minutes to set up.</p><button class="btn btn-ink btn-lg" data-act="sell">Open your artist page</button></div>`;
 }
 let faqPay = null;
@@ -280,11 +280,13 @@ function renderExamplePage() {
 
 // ---------------------------------------------------------------- gallery: artists show their work here
 
-const workCard = (w, i) => `<figure class="shot" style="--i:${i}"><button type="button" class="shot-img" data-work="${esc(w.url)}" data-wt="${esc(w.title)}" data-wh="${esc(w.handle)}" data-wid="${esc(w.id)}" ${w.contactOnly ? 'data-contactonly="1"' : ''} aria-label="View ${esc(w.title)}"><img src="${esc(w.url)}" alt="${esc(w.title)}" loading="lazy"></button>
+const face = (p, avatarIndex, cls) => p.portrait ? `<span class="avatar ${cls} photo"><img src="${esc(p.portrait)}" alt=""></span>` : avE(avatarIndex, cls, p.handle);
+const workData = w => `data-wnote="${esc(w.note || '')}" data-wseries="${esc(w.series || '')}"`;
+const workCard = (w, i) => `<figure class="shot" style="--i:${i}"><button type="button" class="shot-img" data-work="${esc(w.url)}" ${workData(w)} data-wt="${esc(w.title)}" data-wh="${esc(w.handle)}" data-wid="${esc(w.id)}" ${w.contactOnly ? 'data-contactonly="1"' : ''} aria-label="View ${esc(w.title)}"><img src="${esc(w.url)}" alt="${esc(w.title)}" loading="lazy"></button>
   <figcaption><div><b>${esc(w.title)}</b><a href="/@${esc(w.handle)}" data-nav>${esc(w.artist)}${w.place ? ' · ' + esc(w.place) : ''}</a></div>${w.contactOnly ? `<a class="btn btn-ink btn-sm" href="/@${esc(w.handle)}" data-nav>View portfolio</a>` : `<button type="button" class="btn btn-ink btn-sm" data-ask="${esc(w.handle)}" data-ref="${esc(w.id)}">Order in this style</button>`}</figcaption></figure>`;
 function filtered() {
   const q = S.q.toLowerCase();
-  return G.filter(w => (!S.place || w.place === S.place) && (!q || `${w.title} ${w.artist} ${w.place}`.toLowerCase().includes(q)));
+  return G.filter(w => (!S.place || w.place === S.place) && (!q || `${w.title} ${w.series} ${w.artist} ${w.place}`.toLowerCase().includes(q)));
 }
 function renderGallery() {
   const all = filtered(), shown = all.slice(0, S.shown);
@@ -379,28 +381,42 @@ function spy() {
 function reviewHTML(r) {
   return `<div class="pf-rev"><div class="h"><div><b>${esc(r.buyer)}</b><small>${new Date(r.created).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })} · ${esc(r.service)}</small></div>${stars(r.rating)}</div>${r.text ? `<p>${esc(r.text)}</p>` : ''}</div>`;
 }
+// section filters, for portfolios that have more than one kind of work
+function seriesBar(art) {
+  const names = [...new Set(art.map(a => a.series).filter(Boolean))]; if (names.length < 2) return '';
+  return `<div class="series" role="group" aria-label="Filter the showcase">${['', ...names].map((n, i) => `<button type="button" class="chip ${i ? '' : 'on'}" aria-pressed="${!i}" data-series="${esc(n)}">${esc(n || 'All')} <small>${n ? art.filter(a => a.series === n).length : art.length}</small></button>`).join('')}</div>`;
+}
+// the picture viewer: title, note, and arrows to step through the pictures around it
+function openWork(el) {
+  const around = [...(el.closest('.works, #gallery-grid')?.querySelectorAll('[data-work]') || [el])].filter(x => x.offsetParent !== null), at = Math.max(0, around.indexOf(el)), d = el.dataset;
+  openDyn(`<div class="light"><div class="light-stage"><img src="${esc(d.work)}" alt="${esc(d.wt)}">${around.length > 1 ? `<button type="button" class="light-nav prev" data-step-work="-1" aria-label="Previous picture">${ic('left')}</button><button type="button" class="light-nav next" data-step-work="1" aria-label="Next picture">${ic('left')}</button>` : ''}</div>${d.wseries ? `<span class="light-series">${esc(d.wseries)}</span>` : ''}<p class="light-title">${esc(d.wt)}${around.length > 1 ? ` <small>${at + 1} / ${around.length}</small>` : ''}</p>${d.wnote ? `<p class="light-note">${esc(d.wnote)}</p>` : ''}${S.user?.seller?.handle === d.wh || d.contactonly ? '' : `<button class="btn btn-pop" data-ask="${esc(d.wh)}" data-ref="${esc(d.wid)}">Order something in this style</button>`}</div>`, 'wide');
+  viewer = { around, at };
+}
+let viewer = null;
+const stepWork = by => { if (viewer && document.querySelector('.overlay.open .light')) openWork(viewer.around[(viewer.at + by + viewer.around.length) % viewer.around.length]); };
+addEventListener('keydown', e => { if (e.key === 'ArrowLeft') stepWork(-1); if (e.key === 'ArrowRight') stepWork(1); });
 function profileHTML(p, reviews, art) {
   const mine = S.user?.seller?.handle === p.handle;
   const since = new Date(p.since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }), cat = CATS.find(c => c.id === p.category);
   const site = /^https?:\/\//i.test(p.website || '') ? `<a href="${esc(p.website)}" target="_blank" rel="nofollow noopener noreferrer">${esc(p.website.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}</a>` : '';
   const insta = /^[A-Za-z0-9._]{1,30}$/.test(p.instagram || '') ? 'https://www.instagram.com/' + p.instagram + '/' : '';
   const instaBtn = cls => `<a class="btn btn-insta ${cls}" href="${insta}" target="_blank" rel="noopener noreferrer">${ic('camera')} @${esc(p.instagram)}</a>`;
-  const main = cls => mine ? `<button class="btn btn-ink ${cls}" data-act="edit-profile">${ic('edit')} Edit my page</button>` : p.contactOnly ? instaBtn(cls) : `<button class="btn btn-pop ${cls}" data-ask="${esc(p.handle)}">${ic('edit')} Order custom work</button>`;
+  const main = cls => mine ? `<button class="btn btn-ink ${cls}" data-act="edit-profile">${ic('edit')} Edit my page</button>` : p.contactOnly ? (insta ? instaBtn(cls) : `<a class="btn btn-pop ${cls}" href="/contact" data-nav>${ic('chat')} Ask about this artist</a>`) : `<button class="btn btn-pop ${cls}" data-ask="${esc(p.handle)}">${ic('edit')} Order custom work</button>`;
   const waiting = mine && S.user.artist !== 'approved';
-  return `<div class="pf-banner">${bannerSvg(p.accent)}<div class="container" style="position:relative;height:100%"><div class="pf-back"><a href="/" data-nav>${ic('left')} Home</a></div></div></div>
+  return `<div class="pf-banner">${art.length >= 5 ? `<div class="pf-strip" aria-hidden="true">${art.slice(0, 5).map(a => `<img src="${esc(a.url)}" alt="">`).join('')}</div>` : bannerSvg(p.accent)}<div class="container" style="position:relative;height:100%"><div class="pf-back"><a href="/" data-nav>${ic('left')} Home</a></div></div></div>
   <div class="container">
     ${waiting ? `<div class="pf-wait">${ic('clock')} ${S.user.artist === 'rejected' ? 'Your application was not approved. Update your page and save it to apply again.' : 'Only you can see this page until an admin approves your application.'}</div>` : ''}
-    <div class="pf-head">${avE(p.avatar, 'xl', p.handle)}
+    <div class="pf-head">${face(p, p.avatar, 'xl')}
       <div class="pf-id"><h1>${esc(p.name)}</h1><p class="hl">${esc(p.headline)}</p>
         <div class="pf-meta">${p.reviews ? `<span class="rate">${ic('star', 'fill')}<b>${p.rating.toFixed(1)}</b><small>(${plural(p.reviews, 'review')})</small></span>` : ''}${p.place ? `<span>${ic('pin')}${esc(p.place)}</span>` : ''}<span class="online-txt" data-ptxt="${esc(p.handle)}" ${S.online.has(p.handle) ? '' : 'hidden'}>Online now</span><span>${ic('clock')}Member since ${since}</span></div></div>
       <div class="pf-actions">${main('')}${insta && !p.contactOnly ? instaBtn('') : ''}${mine || p.contactOnly ? '' : `<button class="btn btn-line" data-contact="${esc(p.handle)}">${ic('chat')} Message</button>`}<button class="btn btn-line" data-share="${esc(p.handle)}">${ic('share')} Share</button></div></div>
     <nav class="pf-nav" id="pfNav" aria-label="Page sections"><a href="#pf-work" data-pf="pf-work">Showcase</a><a href="#pf-about" data-pf="pf-about">About</a><a href="#pf-reviews" data-pf="pf-reviews">Reviews</a></nav>
     <div class="pf-grid"><div>
-      <section class="pf-sec" id="pf-work"><h2>Showcase${art.length ? ` <small>${plural(art.length, 'piece')}</small>` : ''}</h2>${art.length ? `<div class="works">${art.map(a => `<button class="work" data-work="${esc(a.url)}" data-wt="${esc(a.title)}" data-wh="${esc(p.handle)}" data-wid="${esc(a.id)}" ${p.contactOnly ? 'data-contactonly="1"' : ''}><img src="${esc(a.url)}" alt="${esc(a.title)}" loading="lazy"><span>${esc(a.title)}</span></button>`).join('')}</div>` : `<div class="empty-s"><b>No artwork uploaded yet</b>${mine ? 'Open your dashboard to add your first piece.' : 'Check back soon.'}</div>`}</section>
-      <section class="pf-sec" id="pf-about"><h2>About</h2><p class="pf-about">${esc(p.bio)}</p>${p.skills?.length ? `<div class="skill-row">${p.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div>` : ''}</section>
+      <section class="pf-sec" id="pf-work"><h2>Showcase${art.length ? ` <small>${plural(art.length, 'piece')}</small>` : ''}</h2>${art.length ? `${seriesBar(art)}<div class="works">${art.map(a => `<button class="work" ${workData(a)} data-work="${esc(a.url)}" data-wt="${esc(a.title)}" data-wh="${esc(p.handle)}" data-wid="${esc(a.id)}" ${p.contactOnly ? 'data-contactonly="1"' : ''}><img src="${esc(a.url)}" alt="${esc(a.title)}" loading="lazy"><span>${esc(a.title)}</span></button>`).join('')}</div>` : `<div class="empty-s"><b>No artwork uploaded yet</b>${mine ? 'Open your dashboard to add your first piece.' : 'Check back soon.'}</div>`}</section>
+      <section class="pf-sec" id="pf-about"><h2>About</h2><p class="pf-about">${esc(p.bio)}</p>${p.inspiredBy?.length ? `<h3 class="pf-sub">Inspired by</h3><div class="skill-row insp">${p.inspiredBy.map(s => `<span>${esc(s)}</span>`).join('')}</div><h3 class="pf-sub">Works in</h3>` : ''}${p.skills?.length ? `<div class="skill-row">${p.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div>` : ''}</section>
       <section class="pf-sec" id="pf-reviews"><h2>Reviews${p.reviews ? ` <small>${p.rating.toFixed(1)} average from ${plural(p.reviews, 'review')}</small>` : ''}</h2>${reviews.length ? reviews.map(reviewHTML).join('') : `<div class="empty-s"><b>No reviews yet</b>Reviews appear here after a customer completes an order.</div>`}</section>
     </div>
-    <aside class="pf-side"><div class="card side-card"><div class="from">Custom work</div><div class="amt">${p.contactOnly ? 'On Instagram' : 'Get a quote'}</div>${main('btn-block btn-lg')}<button class="btn btn-line btn-block" data-share="${esc(p.handle)}">${ic('link')} Copy page link</button></div>
+    <aside class="pf-side"><div class="card side-card"><div class="from">Custom work</div><div class="amt">${p.contactOnly ? (insta ? 'On Instagram' : 'Opening soon') : 'Get a quote'}</div>${main('btn-block btn-lg')}<button class="btn btn-line btn-block" data-share="${esc(p.handle)}">${ic('link')} Copy page link</button></div>
       <div class="card side-card"><ul class="facts"><li><span>Member since</span><b>${since}</b></li>${cat ? `<li><span>Mostly makes</span><b>${cat.name}</b></li>` : ''}${p.place ? `<li><span>Location</span><b>${esc(p.place)}</b></li>` : ''}${insta ? `<li><span>Instagram</span><b><a class="ulink" href="${insta}" target="_blank" rel="noopener noreferrer">@${esc(p.instagram)}</a></b></li>` : ''}<li><span>Artworks</span><b>${art.length}</b></li>${p.completed ? `<li><span>Orders completed</span><b>${p.completed}</b></li>` : ''}
         ${p.languages?.length ? `<li><span>Languages</span><b>${p.languages.map(esc).join(', ')}</b></li>` : ''}${site ? `<li><span>Website</span><b>${site}</b></li>` : ''}</ul></div>
       ${mine ? '' : `<a class="report-link" href="/contact?report=${esc(p.handle)}" data-nav>${ic('flag')} Report this page</a>`}</aside></div></div>`;
@@ -458,7 +474,14 @@ document.addEventListener('click', e => {
   const ask = e.target.closest('[data-ask]'); if (ask) return openRequest({ handle: ask.dataset.ask, reference: ask.dataset.ref || '' });
   const prodBtn = e.target.closest('[data-prod]'); if (prodBtn) return openRequest({ product: prodBtn.dataset.prod });
   const work = e.target.closest('[data-work]');
-  if (work) return openDyn(`<div class="light"><img src="${esc(work.dataset.work)}" alt="${esc(work.dataset.wt)}"><p>${esc(work.dataset.wt)}</p>${S.user?.seller?.handle === work.dataset.wh || work.dataset.contactonly ? '' : `<button class="btn btn-pop" data-ask="${esc(work.dataset.wh)}" data-ref="${esc(work.dataset.wid)}">Order something in this style</button>`}</div>`, 'wide');
+  if (work) return openWork(work);
+  const step = e.target.closest('[data-step-work]'); if (step) return stepWork(+step.dataset.stepWork);
+  const series = e.target.closest('[data-series]');
+  if (series) {
+    series.parentElement.querySelectorAll('[data-series]').forEach(b => { b.classList.toggle('on', b === series); b.setAttribute('aria-pressed', b === series); });
+    series.closest('.pf-sec').querySelectorAll('.work').forEach(w => { const show = !series.dataset.series || w.dataset.wseries === series.dataset.series; w.hidden = !show; if (show) w.classList.add('seen'); });
+    return;
+  }
   const placeBtn = e.target.closest('[data-place]'); if (placeBtn) { S.place = S.place === placeBtn.dataset.place ? '' : placeBtn.dataset.place; S.shown = 12; placeSig = ''; renderPlaces(); renderGallery(); return goHash('gallery'); }
   const query = e.target.closest('[data-q]'); if (query) { if (location.pathname !== '/') { history.pushState({}, '', '/'); showHome(); } return setQuery(query.dataset.q); }
   const contact = e.target.closest('[data-contact]'); if (contact) return openMessage(contact.dataset.contact);
