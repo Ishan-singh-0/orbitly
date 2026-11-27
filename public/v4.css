@@ -185,3 +185,5 @@ body:has(.overlay.open) :is(.bot, .totop) { opacity: 0; pointer-events: none; }
 }
 .pf-nav { background: var(--bg); }
 .pf-sec { scroll-margin-top: 130px; }
+.demo-hud .btn + .btn { margin-left: -10px; }
+.shot-img img { object-position: center; }

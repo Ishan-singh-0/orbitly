@@ -2,7 +2,7 @@
 
 No website can honestly be called "unhackable", and this one is no exception. What follows is exactly what Tweak’d
 does to protect itself and its users, what **you** must do on the hosting side, and what is still open.
-Every protection listed under "Built in" is covered by an automated attack test (222 checks) that was run against the app.
+Every protection listed under "Built in" is covered by an automated attack test (228 checks) that was run against the app.
 
 ## Built in
 

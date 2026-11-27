@@ -207,6 +207,42 @@ async function seedDemo() {
   save(); bump(); console.log('[demo] demo accounts created: buyer, artist, pending artist, admin');
 }
 
+/* ------------------------------------------------------- founding artists
+   Real artists who are part of the project. Their photos live in showcase/<handle>/ in the repository; each start
+   copies new ones into their portfolio and removes ones that were deleted. Without a login configured
+   (ANIRUDH_EMAIL + ANIRUDH_PASSWORD) the page is a showcase that points to Instagram. FEATURED_ARTISTS=0 turns this off. */
+const FEATURED = [{ env: 'ANIRUDH', name: 'Anirudh Sondhi', handle: 'anirudh-sondhi', instagram: 'courtesy_of_cube',
+  headline: '“I art :)” · Ani', category: 'apparel', skills: ['Ink doodle art', 'Hand-painted clothing', 'Custom footwear', 'Illustration'],
+  bio: 'Anirudh Sondhi, known as Ani, posts as @courtesy_of_cube. His work runs from dense hand-drawn ink doodles to painted pieces, and the sample projects here take that onto things you can wear: painted denim, lettered boots and jersey designs.' }];
+async function seedFeatured() {
+  for (const f of FEATURED) {
+    const email = String(process.env[f.env + '_EMAIL'] || '').toLowerCase(), pw = String(process.env[f.env + '_PASSWORD'] || '');
+    let u = db.users.find(x => x.featured === f.handle);
+    if (!u) {
+      if (db.users.some(x => x.seller?.handle === f.handle || (email && x.email === email))) continue;
+      u = { id: crypto.randomUUID(), name: f.name, email: email || f.handle + '@artists.invalid', seller: { handle: f.handle, location: '', country: '', website: '', payout: '', accent: 2, avatar: 3, languages: [], since: Date.now() }, artist: 'approved', created: Date.now(), verified: true, notify: false, featured: f.handle };
+      await setPw(u, crypto.randomBytes(24).toString('hex')); db.users.push(u);
+    }
+    const canLogin = !!(email && pw.length >= 10);
+    if (canLogin) { u.email = email; if (!(await checkPw(u, pw)) && !u.claimed) await setPw(u, pw); u.claimed = true; }
+    u.contactOnly = !u.claimed;
+    if (!u.claimed) Object.assign(u.seller, { headline: f.headline, category: f.category, skills: f.skills, bio: f.bio, instagram: f.instagram }); // until he can edit it himself
+    const dir = path.join(__dirname, 'showcase', f.handle);
+    let files = []; try { files = fs.readdirSync(dir).filter(n => /\.(jpe?g|png|webp)$/i.test(n)).sort().slice(0, 40); } catch {}
+    db.art.filter(a => a.owner === u.id && a.source && !files.includes(a.source)).forEach(a => { try { fs.unlinkSync(path.join(UP_DIR, a.file)); } catch {} db.art.splice(db.art.indexOf(a), 1); });
+    for (const name of files) {
+      if (db.art.some(a => a.owner === u.id && a.source === name && fs.existsSync(path.join(UP_DIR, a.file)))) continue;
+      const raw = fs.readFileSync(path.join(dir, name)), kind = imageKind(raw);
+      if (!kind || raw.length > 4 * 1024 * 1024) { console.warn('[showcase] skipped ' + name + ' (not a JPG/PNG/WebP under 4 MB)'); continue; }
+      db.art = db.art.filter(a => !(a.owner === u.id && a.source === name));
+      const id = crypto.randomBytes(8).toString('hex'), file = id + '.' + kind; fs.writeFileSync(path.join(UP_DIR, file), raw, { mode: 0o600 });
+      const title = name.replace(/\.[^.]+$/, '').replace(/^\d+[-_ ]*/, '').replace(/[-_]+/g, ' ').trim();
+      db.art.push({ id, owner: u.id, title: clean(title ? title[0].toUpperCase() + title.slice(1) : 'Sample project', 60), file, source: name, created: Date.now() });
+    }
+  }
+  save(); bump();
+}
+
 /* ------------------------------------------------------------ rate limit */
 const buckets = new Map();
 function limited(key, max, windowMs = 10 * 60e3) {
@@ -340,7 +376,7 @@ function stateObj() {
     online: pu.filter(u => isArtist(u) && onlineIds.has(u.id)).map(u => u.seller.handle),
     places: Object.entries(pu.filter(u => isArtist(u) && placeOf(u.seller)).reduce((m, u) => (m[placeOf(u.seller)] = (m[placeOf(u.seller)] || 0) + 1, m), {})).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 24).map(([name, artists]) => ({ name, artists })),
     rates: { ...rates, updated: ratesAt },
-    config: { company: COMPANY, contactEmail: CONTACT_EMAIL, siteUrl: SITE_URL, mail: MAIL_ON, captcha: CAPTCHA_ON, payments: PAY_ON, demo: DEMO_ON ? DEMO_LIST : null }
+    config: { company: COMPANY, contactEmail: CONTACT_EMAIL, siteUrl: SITE_URL, mail: MAIL_ON, captcha: CAPTCHA_ON, payments: PAY_ON }
   };
 }
 const isBanned = uid => !!db.users.find(u => u.id === uid)?.banned;
@@ -358,12 +394,17 @@ const alertsFor = uid => db.orders.filter(o => (o.seller === uid && (o.status ==
 const reviewsFor = uid => db.reviews.filter(r => r.seller === uid).slice(-30).reverse().map(r => { const b = db.users.find(x => x.id === r.buyer), g = db.gigs.find(x => x.id === r.gig), n = (b?.name || 'Former member').split(' '); return { rating: r.rating, text: r.text, created: r.created, service: g?.title || db.orders.find(o => o.id === r.order)?.gigTitle || 'a service', buyer: n.length > 1 ? `${n[0]} ${n[n.length - 1][0]}.` : n[0] }; });
 const orderOut = (o, uid) => { const peerId = o.buyer === uid ? o.seller : o.buyer, p = db.users.find(x => x.id === peerId), rv = db.reviews.find(r => r.order === o.id); return { id: o.id, gigId: o.gigId, gigTitle: o.gigTitle, kind: o.kind || 'listing', item: o.item || '', budget: o.budget || 0, deadline: o.deadline || '', links: o.links || [], quoteNote: o.quoteNote || '', inspiration: (o.inspiration || []).map(id => '/api/inspiration/' + id), price: o.price, qty: o.qty || 1, total: o.total || o.price, product: o.product || '', options: o.options || {}, artworkUrl: o.options?.artwork ? (db.art.find(a => a.id === o.options.artwork) ? '/uploads/' + db.art.find(a => a.id === o.options.artwork).file : '') : '', pay: o.pay || 'unpaid', canPay: PAY_ON && o.buyer === uid && (o.pay || 'unpaid') === 'unpaid' && ['in_progress', 'delivered'].includes(o.status) && (o.total || o.price) > 0, days: o.days, status: o.status, created: o.created, updated: o.updated, role: o.buyer === uid ? 'buyer' : 'seller', peer: p ? peerOut(p) : { id: peerId, name: 'Former member', handle: '', avatar: null, accent: 0 }, brief: o.brief || '', delivery: o.delivery || '', review: rv ? { rating: rv.rating, text: rv.text } : null }; };
 const isOnline = uid => [...clients].some(c => c.uid === uid);
-const sellerOut = u => ({ handle: u.seller.handle, name: u.name, headline: u.seller.headline, category: u.seller.category, bio: u.seller.bio, location: u.seller.location || '', languages: u.seller.languages || [], skills: u.seller.skills || [], website: u.seller.website || '', country: u.seller.country || '', place: placeOf(u.seller), works: db.art.filter(a => a.owner === u.id).length, accent: u.seller.accent || 0, avatar: u.seller.avatar || 0, since: u.seller.since, services: db.gigs.filter(g => g.owner === u.id).length, online: isOnline(u.id), ...sellerStats(u.id) });
+const sellerOut = u => ({ handle: u.seller.handle, name: u.name, headline: u.seller.headline, category: u.seller.category, bio: u.seller.bio, location: u.seller.location || '', languages: u.seller.languages || [], skills: u.seller.skills || [], website: u.seller.website || '', instagram: u.seller.instagram || '', contactOnly: !!u.contactOnly, country: u.seller.country || '', place: placeOf(u.seller), works: db.art.filter(a => a.owner === u.id).length, accent: u.seller.accent || 0, avatar: u.seller.avatar || 0, since: u.seller.since, services: db.gigs.filter(g => g.owner === u.id).length, online: isOnline(u.id), ...sellerStats(u.id) });
 const unreadFor = uid => db.messages.filter(m => m.to === uid && !m.read).length;
 const pub = u => ({ id: u.id, name: u.name, email: u.email, seller: u.seller ? sellerOut(u) : null, unread: unreadFor(u.id), verified: !!u.verified, needsVerify: MAIL_ON && !u.verified, notify: u.notify !== false, twoFactor: !!u.totp?.enabled, admin: !!u.admin, artist: u.seller ? u.artist || 'pending' : 'none', alerts: alertsFor(u.id), payout: u.seller?.payout || '' });
 const artOut = a => ({ id: a.id, title: a.title, url: '/uploads/' + a.file, created: a.created });
 const gigOut = g => { const o = db.users.find(u => u.id === g.owner), s = o?.seller, aw = g.artwork && db.art.find(a => a.id === g.artwork); return { id: g.id, owner: g.owner, title: g.title, category: g.category, price: g.price, days: g.days, description: g.description || '', included: g.included || [], tags: g.tags || [], created: g.created, product: g.product || '', artwork: aw ? aw.id : '', artworkUrl: aw ? '/uploads/' + aw.file : '', country: s?.country || '', place: placeOf(s), seller: o?.name || 'Seller', handle: s?.handle || '', headline: s?.headline || '', avatar: s?.avatar || 0, accent: s?.accent || 0, ...gigStats(g.id) }; };
 const peerOut = u => ({ id: u.id, name: u.name, handle: u.seller?.handle || '', avatar: u.seller ? u.seller.avatar : null, accent: u.seller?.accent || 0 });
+// accepts "name", "@name" or a profile link (tracking parameters are dropped); '' if empty, null if not Instagram
+function instaHandle(v) {
+  const t = clean(v, 200).replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@/, '');
+  return !t ? '' : /^[A-Za-z0-9._]{1,30}$/.test(t) ? t : null;
+}
 function parseProfile(b, me) {
   const handle = clean(b.handle, 24).toLowerCase();
   if (!/^[a-z0-9][a-z0-9-]{2,23}$/.test(handle)) return { error: 'Your page address must be 3–24 letters, numbers or dashes.' };
@@ -374,10 +415,12 @@ function parseProfile(b, me) {
   if (!CATS.includes(category)) return { error: 'Pick a category.' };
   if (bio.length < 20) return { error: 'Tell buyers a bit more about you (20+ characters).' };
   const website = clean(b.website, 100), country = clean(b.country, 40);
+  const instagram = instaHandle(b.instagram);
+  if (instagram === null) return { error: 'Enter your Instagram username or profile link.' };
   if (website && !/^https?:\/\/[^\s"'<>]+\.[^\s"'<>]+$/i.test(website)) return { error: 'Website must start with http:// or https://' };
   const payout = 'payout' in b ? clean(b.payout, 200) : (me.seller?.payout || '');
   const accent = Math.max(0, Math.min(7, Math.round(+b.accent) || 0)), avatar = Math.max(0, Math.min(11, Math.round(+b.avatar) || 0));
-  return { value: { handle, headline, category, bio, location, website, country, payout, accent, avatar, languages: list(b.languages, 5, 20), skills: list(b.skills, 8, 24) } };
+  return { value: { handle, headline, category, bio, location, website, instagram, country, payout, accent, avatar, languages: list(b.languages, 5, 20), skills: list(b.skills, 8, 24) } };
 }
 const needVerify = (res, u) => { if (MAIL_ON && !u.verified) { fail(res, 403, 'Please verify your email address first. Check your inbox, or request a new link from the banner at the top of the page.', { code: 'unverified' }); return true; } return false; };
 function removeUser(uid) {
@@ -436,13 +479,15 @@ async function api(req, res, url) {
       const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
       if (!ADMIN_ON || !tEq(sha(tok), sha(ADMIN_TOKEN))) { audit('admin_denied', { ip }); return fail(res, 401, 'Unauthorized.'); }
     }
+    // the public demo admin sees the console, but not other people's email addresses, messages or payout details
+    const masked = PROD && sessAdmin && au.demo, hide = e => masked && !/@tweakd\.demo$/.test(e) ? String(e).replace(/^(.).*(@.*)$/, '$1•••$2') : e;
     if (p === '/api/admin/overview' && m === 'GET') return send(res, 200, {
       counts: { users: db.users.length, sellers: db.users.filter(u => u.seller).length, services: db.gigs.length, messages: db.messages.length, reports: db.contact.length, orders: db.orders.length, art: db.art.length, paidCents: db.orders.filter(o => o.pay === 'paid').reduce((a, o) => a + (o.total || o.price) * 100, 0), online: new Set([...clients].map(c => c.uid).filter(Boolean)).size },
       orders: db.orders.slice(-100).reverse().map(o => ({ id: o.id, title: o.gigTitle, status: o.status, pay: o.pay || 'unpaid', total: o.total || o.price, buyer: db.users.find(x => x.id === o.buyer)?.name || '—', seller: db.users.find(x => x.id === o.seller)?.name || '—', created: o.created })),
-      artists: db.users.filter(x => x.seller).sort((a, b) => b.seller.since - a.seller.since).slice(0, 200).map(x => ({ id: x.id, name: x.name, email: x.email, handle: x.seller.handle, headline: x.seller.headline, bio: x.seller.bio, place: placeOf(x.seller), status: x.artist || 'pending', works: db.art.filter(a => a.owner === x.id).slice(-6).map(a => '/uploads/' + a.file) })),
-      users: db.users.slice(-200).reverse().map(u => ({ id: u.id, name: u.name, email: u.email, handle: u.seller?.handle || null, verified: !!u.verified, banned: !!u.banned, admin: !!u.admin, twoFactor: !!u.totp?.enabled, created: u.created })),
+      artists: db.users.filter(x => x.seller).sort((a, b) => b.seller.since - a.seller.since).slice(0, 200).map(x => ({ id: x.id, name: x.name, email: hide(x.email), handle: x.seller.handle, headline: x.seller.headline, bio: x.seller.bio, place: placeOf(x.seller), status: x.artist || 'pending', works: db.art.filter(a => a.owner === x.id).slice(-6).map(a => '/uploads/' + a.file) })),
+      users: db.users.slice(-200).reverse().map(u => ({ id: u.id, name: u.name, email: hide(u.email), handle: u.seller?.handle || null, verified: !!u.verified, banned: !!u.banned, admin: !!u.admin, twoFactor: !!u.totp?.enabled, created: u.created })),
       services: db.gigs.slice(-200).reverse().map(g => ({ id: g.id, owner: g.owner, title: g.title, price: g.price, product: g.product || '', created: g.created })),
-      contact: db.contact.slice(-100).reverse().map(c => ({ id: c.id, name: c.name, email: c.email, subject: c.subject, message: c.message, created: c.created }))
+      contact: (masked ? [] : db.contact.slice(-100)).reverse().map(c => ({ id: c.id, name: c.name, email: c.email, subject: c.subject, message: c.message, created: c.created }))
     });
     let mm;
     if ((mm = p.match(/^\/api\/admin\/artists\/([\w-]{8,64})$/)) && m === 'POST') {
@@ -458,7 +503,7 @@ async function api(req, res, url) {
     if ((mm = p.match(/^\/api\/admin\/gigs\/(\d+)$/)) && m === 'DELETE') { const i = db.gigs.findIndex(g => g.id === +mm[1]); if (i < 0) return fail(res, 404, 'No such service.'); db.gigs.splice(i, 1); save(); bump(); audit('admin_delete_gig', { gig: +mm[1] }); return send(res, 200, { ok: true }); }
     // money: what has been paid, what is owed to artists, mark payouts done, refund
     const owed = o => { const fee = Math.round((o.total || o.price) * FEE_PCT), cents = (o.total || o.price) * 100; return { fee, payout: cents - fee }; };
-    if (p === '/api/admin/orders' && m === 'GET') return send(res, 200, { feePercent: FEE_PCT, orders: db.orders.filter(o => o.pay === 'paid' || o.pay === 'refunded').slice(-200).reverse().map(o => { const s = db.users.find(x => x.id === o.seller); return { id: o.id, title: o.gigTitle, status: o.status, pay: o.pay, totalCents: (o.total || o.price) * 100, ...owed(o), seller: s?.name, payoutTo: s?.seller?.payout || '', payoutDone: o.payoutAt || null, paidAt: o.paidAt }; }) });
+    if (p === '/api/admin/orders' && m === 'GET') return send(res, 200, { feePercent: FEE_PCT, orders: db.orders.filter(o => o.pay === 'paid' || o.pay === 'refunded').slice(-200).reverse().map(o => { const s = db.users.find(x => x.id === o.seller); return { id: o.id, title: o.gigTitle, status: o.status, pay: o.pay, totalCents: (o.total || o.price) * 100, ...owed(o), seller: s?.name, payoutTo: masked ? '' : s?.seller?.payout || '', payoutDone: o.payoutAt || null, paidAt: o.paidAt }; }) });
     if ((mm = p.match(/^\/api\/admin\/orders\/(\d+)\/payout$/)) && m === 'POST') {
       const o = db.orders.find(x => x.id === +mm[1]); if (!o) return fail(res, 404, 'No such order.');
       if (o.pay !== 'paid' || o.status !== 'completed') return fail(res, 409, 'Only paid, completed orders can be paid out.'); if (o.payoutAt) return fail(res, 409, 'Already paid out.');
@@ -485,7 +530,7 @@ async function api(req, res, url) {
   }
   if (p === '/api/me' && m === 'GET') return send(res, 200, { user: u0 ? pub(u0) : null });
   if (p === '/api/gigs' && m === 'GET') return send(res, 200, { gigs: db.gigs.filter(g => isArtist(db.users.find(u => u.id === g.owner))).map(gigOut).reverse() });
-  if (p === '/api/gallery' && m === 'GET') return send(res, 200, { works: db.art.slice().reverse().map(a => { const o = db.users.find(u => u.id === a.owner); return isArtist(o) && { ...artOut(a), handle: o.seller.handle, artist: o.name, place: placeOf(o.seller), avatar: o.seller.avatar || 0 }; }).filter(Boolean).slice(0, 60) });
+  if (p === '/api/gallery' && m === 'GET') return send(res, 200, { works: db.art.slice().reverse().sort((x, y) => { const rank = a => { const o = db.users.find(u => u.id === a.owner); return o?.featured ? 0 : o?.demo ? 2 : 1; }; return rank(x) - rank(y) || (rank(x) === 0 ? x.created - y.created : 0); }).map(a => { const o = db.users.find(u => u.id === a.owner); return isArtist(o) && { ...artOut(a), handle: o.seller.handle, artist: o.name, contactOnly: !!o.contactOnly, instagram: o.seller.instagram || '', place: placeOf(o.seller), avatar: o.seller.avatar || 0 }; }).filter(Boolean).slice(0, 60) });
   if (p === '/api/sellers' && m === 'GET') return send(res, 200, { sellers: publicUsers().filter(isArtist).sort((a, b) => b.seller.since - a.seller.since).slice(0, 200).map(sellerOut) });
   const sp = p.match(/^\/api\/sellers\/([a-z0-9-]{3,24})$/);
   if (sp && m === 'GET') {
@@ -713,7 +758,7 @@ async function api(req, res, url) {
   if (p === '/api/requests' && m === 'POST') {
     if (needVerify(res, u)) return;
     if (limited('req:' + u.id, 15, 3600e3)) return fail(res, 429, 'Too many requests sent. Try again later.');
-    const b = await readBody(req), to = publicUsers().find(x => isArtist(x) && x.seller.handle === String(b.handle));
+    const b = await readBody(req), to = publicUsers().find(x => isArtist(x) && !x.contactOnly && x.seller.handle === String(b.handle));
     if (!to) return fail(res, 404, 'Choose an artist.'); if (to.id === u.id) return fail(res, 400, "You can't order from yourself.");
     const product = String(b.product || ''), prod = product && product !== 'other' ? productOf(product) : null;
     if (product !== 'other' && !prod) return fail(res, 400, 'Choose what you want customised.');
@@ -790,7 +835,7 @@ async function api(req, res, url) {
     if (limited('msg:' + u.id, 60, 3600e3)) return fail(res, 429, 'Slow down a little — you can send up to 60 messages an hour.');
     const b = await readBody(req), text = cleanText(b.text, 2000);
     const to = b.to ? db.users.find(x => x.id === String(b.to) && !x.banned) : publicUsers().find(x => x.seller?.handle === String(b.handle));
-    if (!to) return fail(res, 404, 'Recipient not found.'); if (to.id === u.id) return fail(res, 400, "You can't message yourself.");
+    if (!to) return fail(res, 404, 'Recipient not found.'); if (to.contactOnly) return fail(res, 403, 'Please contact this artist on Instagram.'); if (to.id === u.id) return fail(res, 400, "You can't message yourself.");
     const talked = db.messages.some(x => x.from === to.id && x.to === u.id);
     if (!isArtist(to) && !talked) return fail(res, 403, "You can't message this person.");
     let gig = null;
@@ -860,7 +905,7 @@ function serveFile(req, res, c, name) {
   res.writeHead(200, h); res.end(req.method === 'HEAD' ? undefined : c.buf);
 }
 const STATIC_META = {
-  '/': ['Tweak’d — Your things, customised by artists', 'Get your bag, mouse, hoodie or anything else customised by artists near you and around the world. Share your inspiration, get a quote, and make it yours.'],
+  '/': ['Tweak’d — Your things, customised by artists', 'Get your bag, mouse, hoodie or anything else customised by artists. Share your inspiration, get a quote, and make it yours.'],
   '/about': ['About Tweak’d', 'Why we built Tweak’d: a place where artists put their work on everyday products and anyone can order them.'],
   '/privacy': ['Privacy Policy — Tweak’d', 'What data Tweak’d collects, why, and how you can export or delete it.'],
   '/terms': ['Terms of Service — Tweak’d', 'The rules for using Tweak’d as a buyer or an artist.'],
@@ -946,6 +991,7 @@ server.listen(PORT, HOST, () => console.log(`Tweak’d ${PROD ? '(production) ' 
 const shutdown = sig => { console.log(`\n${sig} received — saving and exiting`); try { flush(); } catch (e) { console.error(e); } process.exit(0); };
 // a demo account that is no longer offered is removed from existing databases
 db.users.filter(u => u.demo && u.email === 'declined@tweakd.demo').forEach(u => removeUser(u.id));
+if (process.env.FEATURED_ARTISTS !== '0') seedFeatured().catch(e => console.error('founding artists:', e.message));
 if (DEMO_ON) seedDemo().catch(e => console.error('demo seed failed:', e.message));
 process.on('SIGINT', () => shutdown('SIGINT')); process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('uncaughtException', e => { console.error('FATAL uncaught exception:', e); try { flush(); } catch {} process.exit(1); }); // let the supervisor restart a clean process

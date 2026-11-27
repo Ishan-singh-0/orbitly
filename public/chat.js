@@ -7,9 +7,11 @@ const say = (html, actions = []) => ({ html, actions });
 
 const ORDER_NOW = () => chatBtn('Start an order', () => openRequest());
 const KNOWLEDGE = [
+  { q: 'tour tutorial guide walkthrough how to use navigate new here show me around', a: () => say('I can walk you through the site, one step at a time.', [chatBtn('Start the tour', () => startTour())]) },
+  { q: 'anirudh sondhi instagram sample projects courtesy of cube', a: () => say('Anirudh Sondhi’s sample projects are on his page. He’s on Instagram as <a class="ulink" href="https://www.instagram.com/courtesy_of_cube/" target="_blank" rel="noopener noreferrer">@courtesy_of_cube</a>.', [chatBtn('Open his page', () => go('/@anirudh-sondhi'))]) },
   { q: 'Hi hello hey help what can you do', a: () => say('Hi! I can help with ordering, quotes, artists, payments, your account and anything else on Tweak’d. Ask in your own words, or tap one below.') },
   { q: 'how do i order place request customise customize my item thing product start buy', a: () => say('Press <b>Customise my item</b>. Three short tabs: <b>Your item</b> (what you own, colour, artist), <b>Inspiration</b> (pictures, links, a style from their showcase) and <b>Details</b> (what you want, budget, date). The artist then sends you a quote.', [ORDER_NOW()]) },
-  { q: 'what is tweakd about this site website platform', a: () => say('Tweak’d lets you get your own things customised by artists, near you or anywhere in the world. Artists show their creations as a showcase; you order something made for you.', [ORDER_NOW()]) },
+  { q: 'what is tweakd about this site website platform', a: () => say('Tweak’d lets you get your own things customised by artists. Artists show their creations as a showcase; you order something made for you.', [ORDER_NOW()]) },
   { q: 'what products items can be customised bag mouse hoodie shoe sneaker skateboard laptop phone case mug bottle notebook tshirt poster something else', a: () => say(`Anything you own can be requested. Common ones: ${PRODUCTS.map(p => p.name.toLowerCase()).join(', ')}. For sneakers, skateboards or anything not listed, choose <b>Something else</b>.`, [ORDER_NOW(), chatBtn('See the products', () => goHash('cats'))]) },
   { q: 'inspiration pictures images upload photo reference idea sketch tab attach', a: () => say('In the order form, open the <b>Inspiration</b> tab. Add up to 6 images (JPG, PNG or WebP) and some links, and optionally choose a piece from the artist’s showcase. Only you, that artist and admins can see your pictures.', [ORDER_NOW()]) },
   { q: 'price cost how much quote quotation budget charge expensive cheap', a: () => say('Each order is quoted by the artist, so there are no fixed prices. Add your budget in the Details tab. The artist replies with a price and delivery time, and nothing starts until you accept.') },
@@ -25,7 +27,6 @@ const KNOWLEDGE = [
   { q: 'forgot password reset cannot log in locked', a: () => say('Use <b>Forgot your password</b> to get a reset link by email. After several wrong attempts an account locks for 15 minutes.', [chatBtn('Reset password', () => go('/forgot'))]) },
   { q: 'two factor 2fa authenticator security safe protect devices recovery codes', a: () => say('In <b>Account settings</b> you can turn on two-step verification with an authenticator app, save recovery codes, and sign out other devices.', [chatBtn('Open settings', () => (S.user ? openSettings() : openAuth('login')))]) },
   { q: 'delete my account data export download privacy information', a: () => say('Account settings lets you download your data or delete your account. The privacy policy explains what is stored.', [chatBtn('Privacy policy', () => go('/privacy'))]) },
-  { q: 'demo test try account example', a: () => say(S.cfg?.demo ? `Demo logins: ${S.cfg.demo.map(d => `<br><b>${d.role}</b> ${d.email} / ${d.password}`).join('')}` : 'Demo accounts are not switched on here.') },
   { q: 'admin approve manage console moderation', a: () => say('Admins use the console to approve artists, manage members, orders, payments and reports.', S.user?.admin ? [chatBtn('Open admin console', () => go('/admin'))] : []) },
   { q: 'copyright my design rights own logo character brand allowed rules terms', a: () => say('Artists keep the copyright in their art. Don’t ask for logos, characters or artwork you don’t have the right to use.', [chatBtn('Terms', () => go('/terms'))]) },
   { q: 'currency rupees dollars euro pounds inr usd', a: () => say('Use the currency menu at the top to see prices in USD, INR, EUR or GBP. Quotes are made in USD.') },
@@ -67,7 +68,7 @@ const chatBox = document.createElement('div'); chatBox.className = 'bot';
 chatBox.innerHTML = `<div class="bot-panel" id="botPanel" role="dialog" aria-label="Help assistant" aria-hidden="true">
     <header><span class="bot-face"><i></i><i></i></span><div><b>Tweak’d helper</b><small>Automated assistant · instant answers</small></div><button type="button" id="botClose" aria-label="Close help">${ic('x')}</button></header>
     <div class="bot-log" id="botLog" aria-live="polite"></div>
-    <div class="bot-chips" id="botChips">${['How do I order?', 'Where is my order?', 'What can be customised?', 'Become an artist', 'Payments'].map(c => `<button type="button">${c}</button>`).join('')}</div>
+    <div class="bot-chips" id="botChips">${['Show me around', 'How do I order?', 'Where is my order?', 'What can be customised?', 'Become an artist', 'Payments'].map(c => `<button type="button">${c}</button>`).join('')}</div>
     <form id="botForm"><input id="botIn" maxlength="300" placeholder="Ask anything about Tweak’d…" aria-label="Your question" autocomplete="off"><button aria-label="Send">${ic('send')}</button></form>
   </div>
   <button type="button" class="bot-fab" id="botFab" aria-label="Open help" aria-expanded="false"><span class="bot-face"><i></i><i></i></span><em>Need help?</em></button>`;

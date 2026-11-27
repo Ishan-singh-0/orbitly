@@ -35,14 +35,6 @@ if (!CALM) {
   addEventListener('scroll', () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { root.style.setProperty('--sy', Math.min(scrollY, 1400)); ticking = false; }); }, { passive: true });
 
   if (matchMedia('(hover: hover)').matches) {
-    // a soft dot trails the pointer and grows over anything clickable
-    const dot = document.createElement('div'); dot.className = 'trail idle'; document.body.appendChild(dot);
-    let x = -100, y = -100, cx = -100, cy = -100, running = false;
-    const move = () => { cx += (x - cx) * .18; cy += (y - cy) * .18; dot.style.transform = `translate(${cx}px, ${cy}px)`; if (Math.abs(x - cx) + Math.abs(y - cy) > .3) requestAnimationFrame(move); else running = false; };
-    addEventListener('pointermove', e => { if (dot.classList.contains('idle')) { cx = e.clientX; cy = e.clientY; dot.classList.remove('idle'); } x = e.clientX; y = e.clientY; dot.classList.toggle('big', !!e.target.closest('a, button, label, .prod, .shot')); if (!running) { running = true; requestAnimationFrame(move); } }, { passive: true });
-
-    document.documentElement.addEventListener('pointerleave', () => dot.classList.add('idle'));
-
     // buttons lean toward the pointer, cards tilt under it
     document.addEventListener('pointermove', e => {
       const m = e.target.closest('.magnet'); if (m) { const r = m.getBoundingClientRect(); m.style.translate = `${(e.clientX - r.left - r.width / 2) * .18}px ${(e.clientY - r.top - r.height / 2) * .3}px`; }

@@ -3,6 +3,7 @@ ENV NODE_ENV=production PORT=3000 DATA_DIR=/data TRUST_PROXY=1
 WORKDIR /app
 COPY package.json server.js ./
 COPY public ./public
+COPY --chown=node:node showcase ./showcase
 RUN mkdir -p /data && chown -R node:node /data /app
 USER node
 EXPOSE 3000

@@ -1,6 +1,6 @@
 // Landing page for GitHub Pages. Pages can only serve static files, so this page shows the product preview
 // (the real mockup code from the app) and links to the live app. Set LIVE_URL once the server is deployed.
-const LIVE_URL = ''; // e.g. 'https://tweakd.onrender.com'
+const LIVE_URL = 'https://orbitly-qcrr.onrender.com'; // e.g. 'https://tweakd.onrender.com'
 const REPO_URL = 'https://github.com/Ishan-singh-0/orbitly';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

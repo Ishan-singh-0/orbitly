@@ -20,7 +20,7 @@ const CATS = PRODUCT_GROUPS;
 const CAT_SHORT = Object.fromEntries(PRODUCT_GROUPS.map(g => [g.id, g.name]));
 const prodById = id => PRODUCTS.find(p => p.id === id);
 const FAQ = [
-  ['What is Tweak’d?', 'A place to get your own things customised by artists. Bring a bag, a mouse, a hoodie or anything else, share what inspires you, and an artist near you or anywhere in the world makes it yours.'],
+  ['What is Tweak’d?', 'A place to get your own things customised by artists. Bring a bag, a mouse, a hoodie or anything else, share what inspires you, and an artist makes it yours.'],
   ['How do I place an order?', 'Press "Customise my item". Pick what you have, choose an artist, add inspiration pictures and notes, and send it. The artist replies with a quote. Nothing starts until you accept it.'],
   ['Do I have to buy a finished product?', 'No. Tweak’d is for customising something you already own or want made your way. Artists show their work as a showcase so you can choose whose style you like.'],
   ['What goes in the inspiration tab?', 'Up to six pictures, links to things you like, and optionally one piece from the artist’s showcase. Only you, that artist and Tweak’d admins can see your pictures.'],
@@ -31,7 +31,7 @@ const FAQ = [
 ];
 const SYM = { USD: '$', INR: '₹', EUR: '€', GBP: '£' };
 const HOME_TITLE = 'Tweak’d — Your things, customised by artists';
-const HOME_DESC = 'Get your bag, mouse, hoodie or anything else customised by artists near you and around the world. Share your inspiration, get a quote, and make it yours.';
+const HOME_DESC = 'Get your bag, mouse, hoodie or anything else customised by artists. Share your inspiration, get a quote, and make it yours.';
 
 // ---------------------------------------------------------------- state
 
@@ -110,7 +110,6 @@ async function loadMe() {
 function applyState(st) {
   S.stats = st.stats; S.places = st.places || []; S.online = new Set(st.online); S.cfg = st.config; if (st.rates) S.rates = st.rates;
   presence(); renderStats(); renderHeroMeta(); renderProof(); renderPlaces();
-  renderDemoStrip();
   if (faqPay !== !!S.cfg?.payments) { faqPay = !!S.cfg?.payments; renderFaq(); }
   $('#copy').textContent = `© ${new Date().getFullYear()} ${S.cfg?.company || 'Tweak’d'}`;
   $('#cur').title = st.rates?.updated ? 'Live exchange rates, updated ' + new Date(st.rates.updated).toLocaleString() : 'Approximate exchange rates';
@@ -202,53 +201,55 @@ function renderProof() {
 
 // ---------------------------------------------------------------- hero: rotates through products on its own
 
-const ROTATION = [['tote', 4], ['mouse', 4], ['hoodie', 3], ['mug', 4], ['case', 3], ['sleeve', 4]]; // [product, colour]
+const ROTATION = [['jeans', 0], ['boots', 0], ['jersey', 0], ['tote', 4], ['hoodie', 0], ['mouse', 4], ['case', 3], ['mug', 4]]; // [product, colour]
+const DESIGN_FOR = { jeans: 0, boots: 4, jersey: 1, tote: 3, hoodie: 2, mouse: 5, case: 6, mug: 7 };
 const TURN_MS = 3600;
 let heroSig = '';
-let demo = { p: 'tote', c: 4, seed: 1, hold: 0, timer: null };
+let demo = { p: 'jeans', c: 0, seed: 0, hold: 0, timer: null };
 function paintDemo(animate) {
   const stage = $('#demoStage'); if (!stage) return;
-  const p = prodById(demo.p), col = p.colors[demo.c % p.colors.length], pool = [...new Set(G.map(w => w.url))]; // real artwork once artists have uploaded some
+  const p = prodById(demo.p), col = p.colors[demo.c % p.colors.length];
   const draw = () => {
     stage.style.setProperty('--stage', col[1]);
     stage.querySelectorAll('.mock').forEach(m => m.remove());
-    stage.insertAdjacentHTML('beforeend', mockup(p.id, col[1], pool.length ? pool[demo.seed % pool.length] : sampleArt(demo.seed)));
+    stage.insertAdjacentHTML('beforeend', mockup(p.id, col[1], sampleArt(demo.seed)));
     stage.classList.remove('leaving'); stage.classList.add('arriving');
     setTimeout(() => stage.classList.remove('arriving'), 620);
   };
   if (animate) { stage.classList.add('leaving'); setTimeout(draw, 300); } else draw();
   $('#demoName').textContent = p.name + ' in ' + col[0].toLowerCase();
-  $('#demoNote').textContent = pool.length ? 'With artwork by Tweak’d artists' : 'Sample artwork. Try the colours and products.';
+  $('#demoNote').textContent = DESIGN_NAMES[demo.seed % 8] + ' sample design. The whole piece can be customised.';
   $('#demoSw').innerHTML = p.colors.map((c, i) => `<button type="button" class="sw ${i === demo.c % p.colors.length ? 'on' : ''}" data-dc="${i}" style="--sw:${c[1]}" aria-label="${c[0]}" title="${c[0]}"></button>`).join('');
   $$('#demoTabs button').forEach(b => { b.classList.remove('on'); if (b.dataset.dp === demo.p) { void b.offsetWidth; b.classList.add('on'); } });
 }
 function turnHero() {
   if (document.hidden || home.hidden || Date.now() < demo.hold || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const i = (ROTATION.findIndex(r => r[0] === demo.p) + 1) % ROTATION.length;
-  demo.p = ROTATION[i][0]; demo.c = ROTATION[i][1]; demo.seed++; paintDemo(true);
+  demo.p = ROTATION[i][0]; demo.c = ROTATION[i][1]; demo.seed = DESIGN_FOR[demo.p]; paintDemo(true);
 }
 function renderHero() {
   if (heroSig) return; heroSig = 'demo';
   $('#heroArt').innerHTML = `<div class="demo" style="--turn:${TURN_MS}ms"><div class="demo-stage" id="demoStage"><span class="demo-tag">Your item, their art</span></div>
-    <div class="demo-hud"><div class="demo-meta"><b id="demoName"></b><small id="demoNote"></small></div><div class="sw-row" id="demoSw"></div><button type="button" class="btn btn-pop btn-sm" id="demoOrder">Customise mine</button></div>
+    <div class="demo-hud"><div class="demo-meta"><b id="demoName"></b><small id="demoNote"></small></div><div class="sw-row" id="demoSw"></div><button type="button" class="btn btn-line btn-sm" id="demoDesign">${ic('refresh')} Next design</button><button type="button" class="btn btn-pop btn-sm" id="demoOrder">Customise mine</button></div>
     <div class="demo-tabs" id="demoTabs">${ROTATION.map(([id]) => `<button type="button" data-dp="${id}"><span>${prodById(id).name}</span></button>`).join('')}</div></div>`;
   const art = $('#heroArt');
   art.onclick = e => {
     const sw = e.target.closest('[data-dc]'), tab = e.target.closest('[data-dp]');
     if (e.target.closest('#demoOrder')) return openRequest({ product: demo.p, color: prodById(demo.p).colors[demo.c % prodById(demo.p).colors.length][0] });
-    if (!sw && !tab) return;
+    if (!sw && !tab && !e.target.closest('#demoDesign')) return;
     demo.hold = Date.now() + 12000; // give the visitor time to play before it moves on
     if (sw) { demo.c = +sw.dataset.dc; paintDemo(false); }
-    if (tab) { demo.p = tab.dataset.dp; demo.c = Math.min(demo.c, prodById(demo.p).colors.length - 1); paintDemo(true); }
+    if (tab) { demo.p = tab.dataset.dp; demo.c = Math.min(demo.c, prodById(demo.p).colors.length - 1); demo.seed = DESIGN_FOR[demo.p]; paintDemo(true); }
+    if (e.target.closest('#demoDesign')) { demo.seed++; paintDemo(true); }
   };
   art.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') demo.hold = Infinity; }); art.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') demo.hold = Date.now() + 2500; });
   paintDemo(false);
   clearInterval(demo.timer); demo.timer = setInterval(turnHero, TURN_MS);
 }
 function renderCats() {
-  $('#catGrid').innerHTML = PRODUCTS.map((p, i) => { const col = p.colors[(i * 2 + 1) % p.colors.length][1]; return `<button class="prod" data-prod="${p.id}" style="--t:${col};--i:${i}"><span class="prod-n">${String(i + 1).padStart(2, '0')}</span><span class="prod-art">${mockup(p.id, col, sampleArt(i + 3))}</span><span class="prod-t"><span><b>${p.name}</b><small>Customise yours</small></span></span></button>`; }).join('')
+  $('#catGrid').innerHTML = PRODUCTS.map((p, i) => { const col = p.colors[(i * 2 + 1) % p.colors.length][1]; return `<button class="prod" data-prod="${p.id}" style="--t:${col};--i:${i}"><span class="prod-n">${String(i + 1).padStart(2, '0')}</span><span class="prod-art">${mockup(p.id, col, sampleArt(i))}</span><span class="prod-t"><span><b>${p.name}</b><small>Customise yours</small></span></span></button>`; }).join('')
     + `<button class="prod prod-other" data-prod="other" style="--i:${PRODUCTS.length}"><span class="prod-plus">+</span><span class="prod-t"><span><b>Something else</b><small>Anything you own</small></span></span></button>`;
-  $('#popChips').innerHTML = ['Tote bag', 'Computer mouse', 'Hoodie', 'Sneakers', 'Skateboard'].map(p => `<button class="chip" data-q="${p}">${p}</button>`).join('');
+  $('#popChips').innerHTML = ['Jeans', 'Boots', 'Jersey', 'Tote bag', 'Hoodie'].map(p => `<button class="chip" data-q="${p}">${p}</button>`).join('');
 }
 let placeSig = '';
 function renderPlaces() {
@@ -265,20 +266,6 @@ function renderSellers() {
     return `<a class="s-card" href="/@${p.handle}" data-nav><div class="s-ban" style="background:${colour}"></div><div class="s-body">${avE(AV_OFFSET + p.avatar, 'lg', p.handle)}<h3>${esc(p.name)}</h3><span class="role">${esc(p.headline)}</span><span class="cat-badge">${esc(p.place) || CAT_SHORT[p.category] || ''}</span><div class="s-meta"><div><b>${p.works || 0}</b>${p.works === 1 ? 'Artwork' : 'Artworks'}</div><div><b>${p.reviews ? p.rating.toFixed(1) + ' ★' : joined}</b>${p.reviews ? plural(p.reviews, 'review') : 'Joined'}</div></div></div></a>`;
   }).join('') : `<div class="empty-card"><h3>No artists yet</h3><p>Your page could be the first one here. It takes a few minutes to set up.</p><button class="btn btn-ink btn-lg" data-act="sell">Open your artist page</button></div>`;
 }
-// one-click demo logins on the home page (only when the server offers demo accounts)
-function renderDemoStrip() {
-  const box = $('#demoStrip'), list = S.cfg?.demo; box.hidden = !list || !!S.user;
-  if (box.hidden || box.childElementCount) return;
-  box.innerHTML = `<p>Try it with a demo account</p><div>${list.map((d, i) => `<button type="button" class="demo-btn" data-trydemo="${i}"><b>${esc(d.role)}</b><small>${esc(d.about)}</small></button>`).join('')}</div>`;
-}
-document.addEventListener('click', async e => {
-  const b = e.target.closest('[data-trydemo]'); if (!b) return;
-  const d = S.cfg.demo[+b.dataset.trydemo]; b.disabled = true;
-  const j = await callC('/api/login', { email: d.email, password: d.password }); b.disabled = false;
-  if (j.error || !j.user) return toast(j.error || 'Could not sign in', '', 'err');
-  finishLogin(j.user, `Signed in as ${d.name}`); renderDemoStrip();
-  if (d.role === 'Admin') go('/admin'); else if (/artist/i.test(d.role)) openDash(); else openOrders('buying');
-});
 let faqPay = null;
 function renderFaq() {
   $('#faqList').innerHTML = FAQ.map(f => `<div class="qa"><button aria-expanded="false"><span>${f[0]}</span><span class="plus">${ic('plus')}</span></button><div class="ans"><div><p>${typeof f[1] === 'function' ? f[1]() : f[1]}</p></div></div></div>`).join('');
@@ -296,8 +283,8 @@ function renderExamplePage() {
 
 // ---------------------------------------------------------------- gallery: artists show their work here
 
-const workCard = (w, i) => `<figure class="shot" style="--i:${i}"><button type="button" class="shot-img" data-work="${esc(w.url)}" data-wt="${esc(w.title)}" data-wh="${esc(w.handle)}" data-wid="${esc(w.id)}" aria-label="View ${esc(w.title)}"><img src="${esc(w.url)}" alt="${esc(w.title)}" loading="lazy"></button>
-  <figcaption><div><b>${esc(w.title)}</b><a href="/@${esc(w.handle)}" data-nav>${esc(w.artist)}${w.place ? ' · ' + esc(w.place) : ''}</a></div><button type="button" class="btn btn-ink btn-sm" data-ask="${esc(w.handle)}" data-ref="${esc(w.id)}">Order in this style</button></figcaption></figure>`;
+const workCard = (w, i) => `<figure class="shot" style="--i:${i}"><button type="button" class="shot-img" data-work="${esc(w.url)}" data-wt="${esc(w.title)}" data-wh="${esc(w.handle)}" data-wid="${esc(w.id)}" ${w.contactOnly ? 'data-contactonly="1"' : ''} aria-label="View ${esc(w.title)}"><img src="${esc(w.url)}" alt="${esc(w.title)}" loading="lazy"></button>
+  <figcaption><div><b>${esc(w.title)}</b><a href="/@${esc(w.handle)}" data-nav>${esc(w.artist)}${w.place ? ' · ' + esc(w.place) : ''}</a></div>${w.contactOnly ? `<a class="btn btn-ink btn-sm" href="/@${esc(w.handle)}" data-nav>View portfolio</a>` : `<button type="button" class="btn btn-ink btn-sm" data-ask="${esc(w.handle)}" data-ref="${esc(w.id)}">Order in this style</button>`}</figcaption></figure>`;
 function filtered() {
   const q = S.q.toLowerCase();
   return G.filter(w => (!S.place || w.place === S.place) && (!q || `${w.title} ${w.artist} ${w.place}`.toLowerCase().includes(q)));
@@ -401,7 +388,9 @@ function profileHTML(p, reviews, art) {
   const mine = S.user?.seller?.handle === p.handle;
   const since = new Date(p.since).toLocaleDateString(undefined, { month: 'long', year: 'numeric' }), cat = CATS.find(c => c.id === p.category);
   const site = /^https?:\/\//i.test(p.website || '') ? `<a href="${esc(p.website)}" target="_blank" rel="nofollow noopener noreferrer">${esc(p.website.replace(/^https?:\/\//i, '').replace(/\/$/, ''))}</a>` : '';
-  const main = cls => mine ? `<button class="btn btn-ink ${cls}" data-act="edit-profile">${ic('edit')} Edit my page</button>` : `<button class="btn btn-pop ${cls}" data-ask="${esc(p.handle)}">${ic('edit')} Order custom work</button>`;
+  const insta = /^[A-Za-z0-9._]{1,30}$/.test(p.instagram || '') ? 'https://www.instagram.com/' + p.instagram + '/' : '';
+  const instaBtn = cls => `<a class="btn btn-insta ${cls}" href="${insta}" target="_blank" rel="noopener noreferrer">${ic('camera')} @${esc(p.instagram)}</a>`;
+  const main = cls => mine ? `<button class="btn btn-ink ${cls}" data-act="edit-profile">${ic('edit')} Edit my page</button>` : p.contactOnly ? instaBtn(cls) : `<button class="btn btn-pop ${cls}" data-ask="${esc(p.handle)}">${ic('edit')} Order custom work</button>`;
   const waiting = mine && S.user.artist !== 'approved';
   return `<div class="pf-banner">${bannerSvg(p.accent)}<div class="container" style="position:relative;height:100%"><div class="pf-back"><a href="/" data-nav>${ic('left')} Home</a></div></div></div>
   <div class="container">
@@ -409,15 +398,15 @@ function profileHTML(p, reviews, art) {
     <div class="pf-head">${avE(p.avatar, 'xl', p.handle)}
       <div class="pf-id"><h1>${esc(p.name)}</h1><p class="hl">${esc(p.headline)}</p>
         <div class="pf-meta">${p.reviews ? `<span class="rate">${ic('star', 'fill')}<b>${p.rating.toFixed(1)}</b><small>(${plural(p.reviews, 'review')})</small></span>` : ''}${p.place ? `<span>${ic('pin')}${esc(p.place)}</span>` : ''}<span class="online-txt" data-ptxt="${esc(p.handle)}" ${S.online.has(p.handle) ? '' : 'hidden'}>Online now</span><span>${ic('clock')}Member since ${since}</span></div></div>
-      <div class="pf-actions">${main('')}${mine ? '' : `<button class="btn btn-line" data-contact="${esc(p.handle)}">${ic('chat')} Message</button>`}<button class="btn btn-line" data-share="${esc(p.handle)}">${ic('share')} Share</button></div></div>
+      <div class="pf-actions">${main('')}${insta && !p.contactOnly ? instaBtn('') : ''}${mine || p.contactOnly ? '' : `<button class="btn btn-line" data-contact="${esc(p.handle)}">${ic('chat')} Message</button>`}<button class="btn btn-line" data-share="${esc(p.handle)}">${ic('share')} Share</button></div></div>
     <nav class="pf-nav" id="pfNav" aria-label="Page sections"><a href="#pf-work" data-pf="pf-work">Showcase</a><a href="#pf-about" data-pf="pf-about">About</a><a href="#pf-reviews" data-pf="pf-reviews">Reviews</a></nav>
     <div class="pf-grid"><div>
-      <section class="pf-sec" id="pf-work"><h2>Showcase${art.length ? ` <small>${plural(art.length, 'piece')}</small>` : ''}</h2>${art.length ? `<div class="works">${art.map(a => `<button class="work" data-work="${esc(a.url)}" data-wt="${esc(a.title)}" data-wh="${esc(p.handle)}" data-wid="${esc(a.id)}"><img src="${esc(a.url)}" alt="${esc(a.title)}" loading="lazy"><span>${esc(a.title)}</span></button>`).join('')}</div>` : `<div class="empty-s"><b>No artwork uploaded yet</b>${mine ? 'Open your dashboard to add your first piece.' : 'Check back soon.'}</div>`}</section>
+      <section class="pf-sec" id="pf-work"><h2>Showcase${art.length ? ` <small>${plural(art.length, 'piece')}</small>` : ''}</h2>${art.length ? `<div class="works">${art.map(a => `<button class="work" data-work="${esc(a.url)}" data-wt="${esc(a.title)}" data-wh="${esc(p.handle)}" data-wid="${esc(a.id)}" ${p.contactOnly ? 'data-contactonly="1"' : ''}><img src="${esc(a.url)}" alt="${esc(a.title)}" loading="lazy"><span>${esc(a.title)}</span></button>`).join('')}</div>` : `<div class="empty-s"><b>No artwork uploaded yet</b>${mine ? 'Open your dashboard to add your first piece.' : 'Check back soon.'}</div>`}</section>
       <section class="pf-sec" id="pf-about"><h2>About</h2><p class="pf-about">${esc(p.bio)}</p>${p.skills?.length ? `<div class="skill-row">${p.skills.map(s => `<span>${esc(s)}</span>`).join('')}</div>` : ''}</section>
       <section class="pf-sec" id="pf-reviews"><h2>Reviews${p.reviews ? ` <small>${p.rating.toFixed(1)} average from ${plural(p.reviews, 'review')}</small>` : ''}</h2>${reviews.length ? reviews.map(reviewHTML).join('') : `<div class="empty-s"><b>No reviews yet</b>Reviews appear here after a customer completes an order.</div>`}</section>
     </div>
-    <aside class="pf-side"><div class="card side-card"><div class="from">Custom work</div><div class="amt">Get a quote</div>${main('btn-block btn-lg')}<button class="btn btn-line btn-block" data-share="${esc(p.handle)}">${ic('link')} Copy page link</button></div>
-      <div class="card side-card"><ul class="facts"><li><span>Member since</span><b>${since}</b></li>${cat ? `<li><span>Mostly makes</span><b>${cat.name}</b></li>` : ''}${p.place ? `<li><span>Location</span><b>${esc(p.place)}</b></li>` : ''}<li><span>Artworks</span><b>${art.length}</b></li>${p.completed ? `<li><span>Orders completed</span><b>${p.completed}</b></li>` : ''}
+    <aside class="pf-side"><div class="card side-card"><div class="from">Custom work</div><div class="amt">${p.contactOnly ? 'On Instagram' : 'Get a quote'}</div>${main('btn-block btn-lg')}<button class="btn btn-line btn-block" data-share="${esc(p.handle)}">${ic('link')} Copy page link</button></div>
+      <div class="card side-card"><ul class="facts"><li><span>Member since</span><b>${since}</b></li>${cat ? `<li><span>Mostly makes</span><b>${cat.name}</b></li>` : ''}${p.place ? `<li><span>Location</span><b>${esc(p.place)}</b></li>` : ''}${insta ? `<li><span>Instagram</span><b><a class="ulink" href="${insta}" target="_blank" rel="noopener noreferrer">@${esc(p.instagram)}</a></b></li>` : ''}<li><span>Artworks</span><b>${art.length}</b></li>${p.completed ? `<li><span>Orders completed</span><b>${p.completed}</b></li>` : ''}
         ${p.languages?.length ? `<li><span>Languages</span><b>${p.languages.map(esc).join(', ')}</b></li>` : ''}${site ? `<li><span>Website</span><b>${site}</b></li>` : ''}</ul></div>
       ${mine ? '' : `<a class="report-link" href="/contact?report=${esc(p.handle)}" data-nav>${ic('flag')} Report this page</a>`}</aside></div></div>`;
 }
@@ -474,7 +463,7 @@ document.addEventListener('click', e => {
   const ask = e.target.closest('[data-ask]'); if (ask) return openRequest({ handle: ask.dataset.ask, reference: ask.dataset.ref || '' });
   const prodBtn = e.target.closest('[data-prod]'); if (prodBtn) return openRequest({ product: prodBtn.dataset.prod });
   const work = e.target.closest('[data-work]');
-  if (work) return openDyn(`<div class="light"><img src="${esc(work.dataset.work)}" alt="${esc(work.dataset.wt)}"><p>${esc(work.dataset.wt)}</p>${S.user?.seller?.handle === work.dataset.wh ? '' : `<button class="btn btn-pop" data-ask="${esc(work.dataset.wh)}" data-ref="${esc(work.dataset.wid)}">Order something in this style</button>`}</div>`, 'wide');
+  if (work) return openDyn(`<div class="light"><img src="${esc(work.dataset.work)}" alt="${esc(work.dataset.wt)}"><p>${esc(work.dataset.wt)}</p>${S.user?.seller?.handle === work.dataset.wh || work.dataset.contactonly ? '' : `<button class="btn btn-pop" data-ask="${esc(work.dataset.wh)}" data-ref="${esc(work.dataset.wid)}">Order something in this style</button>`}</div>`, 'wide');
   const placeBtn = e.target.closest('[data-place]'); if (placeBtn) { S.place = S.place === placeBtn.dataset.place ? '' : placeBtn.dataset.place; S.shown = 12; placeSig = ''; renderPlaces(); renderGallery(); return goHash('gallery'); }
   const query = e.target.closest('[data-q]'); if (query) { if (location.pathname !== '/') { history.pushState({}, '', '/'); showHome(); } return setQuery(query.dataset.q); }
   const contact = e.target.closest('[data-contact]'); if (contact) return openMessage(contact.dataset.contact);

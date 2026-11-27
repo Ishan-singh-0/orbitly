@@ -144,6 +144,7 @@ function bannerSvg(accent = 0) {
 /* ---------- icons (sprite is injected once) ---------- */
 const ICONS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/>',
+  camera: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r=".6"/>',
   refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
   heart: '<path d="M12 20.5s-8-4.9-9.4-10.3C1.7 6.8 3.9 4 7 4c2.1 0 3.8 1.1 5 3 1.2-1.9 2.9-3 5-3 3.1 0 5.3 2.8 4.4 6.2C20 15.6 12 20.5 12 20.5z"/>',
   star: '<path d="m12 2.8 2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.2l-5.7 3.1 1.1-6.3L2.8 9.5l6.4-.9z"/>',

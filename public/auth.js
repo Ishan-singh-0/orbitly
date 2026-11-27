@@ -71,8 +71,7 @@ function openAuth(mode = 'login', note = '') {
       <p class="forgot" id="forgot"><a href="/forgot" data-nav class="ulink">Forgot your password?</a></p>
       <button class="btn btn-ink btn-lg btn-block" id="aGo"></button>
       <p class="legal-note" id="legalNote">By creating an account you agree to our <a href="/terms" data-nav class="ulink">Terms</a> and <a href="/privacy" data-nav class="ulink">Privacy Policy</a>.</p>
-    </form><div class="switch" id="aSwitch"></div>
-    <div class="demo-login" id="demoLogin" hidden></div></div>`, 'narrow');
+    </form><div class="switch" id="aSwitch"></div></div>`, 'narrow');
   paintAuth(note);
   setTimeout(() => $('#authForm input[name=' + (authMode === 'signup' ? 'name' : 'email') + ']')?.focus(), 150);
 }
@@ -86,9 +85,6 @@ function paintAuth(note = '') {
   $('#pw').autocomplete = signup ? 'new-password' : 'current-password';
   $('#eye').innerHTML = ic('lock');
   busy($('#aGo'), false, signup ? 'Create account' : 'Log in');
-  const dl = $('#demoLogin'), demo = S.cfg?.demo;
-  dl.hidden = !demo;
-  if (demo) dl.innerHTML = `<p>Try a demo account</p><div>${demo.map((d, i) => `<button type="button" class="demo-btn" data-demo="${i}"><b>${esc(d.role)}</b><small>${esc(d.about)}</small></button>`).join('')}</div>`;
   $('#aSwitch').innerHTML = signup ? 'Already have an account? <button type="button" data-mode="login">Log in</button>' : 'New here? <button type="button" data-mode="signup">Create an account</button>';
   errBox('');
 }
@@ -104,7 +100,6 @@ function finishLogin(user, welcome) {
 }
 dyn.addEventListener('click', e => {
   const m = e.target.closest('[data-mode]'); if (m) { authMode = m.dataset.mode; paintAuth(); }
-  const dm = e.target.closest('[data-demo]'); if (dm) { const d = S.cfg.demo[+dm.dataset.demo], f = $('#authForm'); f.email.value = d.email; f.password.value = d.password; f.requestSubmit(); }
   if (e.target.closest('#eye')) { const p = $('#pw'); p.type = p.type === 'password' ? 'text' : 'password'; }
 });
 dyn.addEventListener('input', e => {
@@ -211,6 +206,7 @@ function paintTab(tab) {
       <div class="row2"><label class="field"><span>City</span><input name="location" maxlength="40" value="${esc(s.location || '')}" placeholder="e.g. Mumbai"></label><label class="field"><span>Country</span><input name="country" maxlength="40" value="${esc(s.country || '')}" placeholder="India"></label></div>
       <div class="row2"><label class="field"><span>Languages</span><input name="languages" maxlength="80" value="${esc((s.languages || []).join(', '))}" placeholder="English, Hindi"></label></div>
       <label class="field"><span>Skills (comma separated, up to 8)</span><input name="skills" maxlength="200" value="${esc((s.skills || []).join(', '))}" placeholder="Illustration, Lettering, Screen printing"></label>
+      <label class="field"><span>Instagram</span><input name="instagram" maxlength="200" value="${esc(s.instagram || '')}" placeholder="@yourname or a profile link"></label>
       <label class="field"><span>Website</span><input name="website" maxlength="100" value="${esc(s.website)}" placeholder="https://yourportfolio.com"></label>
       <label class="field"><span>How should we pay you? <em class="opt">(private)</em></span><input name="payout" maxlength="200" value="${esc(u.payout || '')}" placeholder="UPI ID, PayPal email or bank details note"><small>Only the Tweak’d team can see this. It's used when an order you completed has been paid for online.</small></label>
       <label class="field"><span>About you</span><textarea name="bio" rows="6" maxlength="800">${esc(s.bio)}</textarea><small id="bioN">${s.bio.length} / 800</small></label>
@@ -333,7 +329,7 @@ function orderCard(o) {
   const stars5 = [5, 4, 3, 2, 1].map(n => `<input type="radio" name="rating" id="rv${o.id}_${n}" value="${n}"><label for="rv${o.id}_${n}" title="${n} star${n > 1 ? 's' : ''}">${ic('star', 'fill')}</label>`).join('');
   return `<article class="ord" data-ord="${o.id}">
     <div class="ord-h"><div><b>${esc(o.gigTitle)}</b><small>${seller ? 'Customer' : 'Artist'}: ${esc(o.peer.name)} · ${o.total ? `${money(o.total)} · ${o.days}-day delivery` : o.budget ? 'Budget ' + money(o.budget) : 'No quote yet'} · ${when(o.created)}</small></div><span class="st st-${o.status}">${ORD_STATUS[o.status]}</span></div>
-    ${p ? `<div class="ord-prod"><span class="op-art">${mockup(p.id, (p.colors.find(c => c[0] === o.options.color) || p.colors[0])[1], o.artworkUrl, { bg: '#EADCC2' })}</span><span>${opts}${payChip}</span></div>` : payChip}
+    ${p ? `<div class="ord-prod"><span class="op-art">${mockup(p.id, (p.colors.find(c => c[0] === o.options.color) || p.colors[0])[1], '', { bg: '#EADCC2' })}</span><span>${opts}${payChip}</span></div>` : payChip}
     ${o.brief ? `<p class="ord-brief">${esc(o.brief)}</p>` : ''}${o.deadline ? `<p class="ord-meta">${ic('clock')} Needed by ${new Date(o.deadline + 'T00:00').toLocaleDateString()}</p>` : ''}${o.inspiration.length || o.links.length ? `<div class="ord-insp"><b>Inspiration</b><div>${o.inspiration.map(u => `<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="Inspiration"></a>`).join('')}</div>${o.links.map(l => `<a class="ulink" href="${esc(l)}" target="_blank" rel="nofollow noopener noreferrer">${esc(l)}</a>`).join('')}</div>` : ''}${o.quoteNote ? `<div class="ord-del"><b>Note with the quote</b><p>${esc(o.quoteNote)}</p></div>` : ''}${o.delivery ? `<div class="ord-del"><b>Delivery note</b><p>${esc(o.delivery)}</p></div>` : ''}
     <div class="ord-act">${actions}<button class="btn btn-line btn-sm" data-open-chat="${o.peer.id}">${ic('chat')} Conversation</button></div>
     <form class="ord-form" data-order="${o.id}" data-action="quote" hidden><div class="ferr"></div><div class="row2"><label class="field"><span>Your price (USD)</span><input name="price" type="number" min="5" max="5000" value="${o.total || o.budget || 25}"></label><label class="field"><span>Ready in (days)</span><input name="days" type="number" min="1" max="90" value="${o.days || 7}"></label></div><label class="field"><span>Note to the customer <em class="opt">(optional)</em></span><textarea name="note" rows="3" maxlength="1000"></textarea></label><button class="btn btn-ink btn-sm">Send quote</button></form>

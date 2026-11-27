@@ -18,7 +18,7 @@ const PAGES = {
     const pay = !!S.cfg?.payments;
     return pageShell('About', 'Art you can use every day.', `
       <p class="big">Tweak’d is where artists put their work on things people actually use, and where anyone can order a bag, a mouse, a mug or a hoodie made by someone whose portfolio they can see first.</p>
-      <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly, whether they live down the road or across the world.</p>
+      <p>Plenty of talented artists, especially students, have a portfolio and nowhere to sell it. And plenty of people would rather carry something drawn by a person than something from a catalogue. We wanted to connect the two directly.</p>
       <h2>What you get</h2>
       <ul><li><b>A portfolio page.</b> Every artist gets an address like <span class="mono">/@yourname</span> with their showcase, story and location. Artist accounts are approved by an admin.</li>
       <li><b>Custom orders.</b> Tell an artist what you own, share your inspiration, and get a quote before anything starts.</li>
